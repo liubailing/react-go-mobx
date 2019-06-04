@@ -106,7 +106,7 @@ export const DiagramSetting = {
     tipFont: 'bold 14px Sans-Serif',
     groupTip: '将要执行的流程拖放在此处',
     groupTipFont: '14px Sans-Serif',
-    moveNode: false,
+    moveNode: true,
     moveLoop: false,
     moveCond: false,
     moveCondBranch: false,

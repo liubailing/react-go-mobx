@@ -33,9 +33,9 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         //this.onModelChangeHandler = this.onModelChangeHandler.bind(this);
         this.mouseEnterHandler = this.mouseEnterHandler.bind(this);
         this.mouseLeaveHandler = this.mouseLeaveHandler.bind(this);
-        // this.mouseDropHandler = this.mouseDropHandler.bind(this);
-        // this.mouseDragEnterHandler = this.mouseDragEnterHandler.bind(this);
-        // this.mouseDragLeaveHandler = this.mouseDragLeaveHandler.bind(this); 
+        this.mouseDropHandler = this.mouseDropHandler.bind(this);
+        this.mouseDragEnterHandler = this.mouseDragEnterHandler.bind(this);
+        this.mouseDragLeaveHandler = this.mouseDragLeaveHandler.bind(this); 
         //this.getLinkPlusLineHighlightedopacity  = this.getLinkPlusLineHighlightedopacity.bind(this);
     }
 
@@ -56,11 +56,12 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         }
     }
 
+    
     render() {
         return (
             <GojsDiagram
                 diagramId={'divDiagram'+(new Date().getTime())}
-                className="divDiagram"
+                className="divDiagram"               
                 model={this.props.store.model}
                 createDiagram={this.createDiagram}
                 onModelChange={this.onModelChangeHandler}
@@ -265,8 +266,13 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
                         movable: DiagramSetting.moveNode,
+                        mouseDragEnter: this.mouseDragEnterHandler,
+                        mouseDragLeave: this.mouseDragLeaveHandler,
+                        
+                        mouseDrop: this.mouseDropHandler,
                         selectionChanged: (node: any) => {
                             //this.props.store.currKey = node.key as string;
+                            console.log('-----------selectionChanged-----------',node)
                             this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
                         },
                         padding: new go.Margin(DiagramSetting.padding, 0, DiagramSetting.padding, 0),
@@ -626,7 +632,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
                         mouseLeave: this.mouseLeaveHandler,
                         mouseEnter: this.mouseEnterHandler,
-
+                        
                         // mouseDrop: this.mouseDropHandler,
 
                         selectionChanged: (node: any) => {
@@ -909,6 +915,36 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
         this.props.store.diagram = myDiagram;
 
+
+        // myDiagram.model.addChangedListener(function(e) {
+        //     debugger;
+        //     // do not display some uninteresting kinds of transaction notifications
+        //     if (e.change === go.ChangedEvent.Transaction) {
+        //       if (e.propertyName === "CommittingTransaction" || e.modelChange === "SourceChanged") return;
+        //       // do not display any layout transactions
+        //       if (e.oldValue === "Layout") return;
+        //     }  // You will probably want to use e.isTransactionFinished instead
+        //     // Add entries into the log
+        //     var changes = e.toString();
+        //     if (changes[0] !== "*") changes = "&nbsp;&nbsp;" + changes;
+
+        //     window.console.log("  ",changes);
+        //   }); // end model changed listener
+
+        //   myDiagram.model.addChangedListener(function(e) {
+        //     debugger;
+        //     if (e.isTransactionFinished) {
+        //       var tx = e.object;
+        //       if (tx instanceof go.Transaction && window.console) {
+        //         window.console.log(tx.toString());
+        //         tx.changes.each(function(c) {
+        //           if (c.model) window.console.log("  " + c.toString());
+        //         });
+        //       }
+        //     }
+        //   });
+        //  // end init
+        
         return myDiagram;
     }
 
@@ -1027,6 +1063,57 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
             node.diagram.commitTransaction('Change color');
         }
     }
+
+    /**
+     * 鼠标 拖拽移上
+     * @param e
+     * @param obj
+     */
+    private mouseDragEnterHandler(e: go.InputEvent, obj: GraphObject): void {
+
+       
+
+     }
+
+    /**
+     * 鼠标 拖拽移开
+     * @param e
+     * @param obj
+     */
+    private mouseDragLeaveHandler(e: go.InputEvent, obj: GraphObject, obj1: GraphObject): void { 
+        console.log("--mouseDragLeaveHandler--",e)
+    }
+
+    /**
+     * 鼠标 拖拽
+     * @param e
+     * @param obj
+     */
+    private mouseDropHandler(e: go.InputEvent, obj: GraphObject): void {
+         //console.log("--mouseDropHandler--",e);
+         console.log("--mouseDropHandler--", this.props.store.diagram.commandHandler.canUndo()); ;
+         this.props.store.diagram.commandHandler.undo();
+        // myDiagram.redraw();
+        // if (obj && obj.part) {
+        //     if (obj instanceof go.Link) {
+        //         this.props.addNodeByDropLinkHandler({
+        //             eType: NodeEventType.Move2Link,
+        //             toLink: obj.part!.data as WFLinkModel
+        //         });
+        //     } else if (obj instanceof go.Group) {
+        //         this.props.addNodeByDropNodeHandler({
+        //             eType: NodeEventType.Move2Group,
+        //             toNode: obj.part!.data as WFNodeModel
+        //         });
+        //     } else if (obj instanceof go.Node) {
+        //         this.props.addNodeByDropNodeHandler({
+        //             eType: NodeEventType.Move2Node,
+        //             toNode: obj.part!.data as WFNodeModel
+        //         });
+        //     }
+        // }
+    }
+
 
 
     /**

@@ -657,7 +657,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         if (!nodes || nodes.length < 0) {
             nodes = [
                 { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
-                { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
+                { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },                
+                { key: 'node123', label: '打开网页123', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
                 { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
             ];
 

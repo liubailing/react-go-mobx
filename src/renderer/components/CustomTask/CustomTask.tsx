@@ -78,14 +78,15 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
 
                     <Row className="customtask-main">
                         <SplitPane split="horizontal" defaultSize="50%" onChange={size => this.onWindowResize()} ref='mainSpliter'>
-                            {
+                            
 
-                                <SplitPane split="vertical" defaultSize="50%" minSize={350}>
-                                    <div><Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow> </div>
-                                    <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, overflow: 'auto' }}></div>
-                                </SplitPane>
+                            <SplitPane split="vertical" defaultSize="75%" minSize={500}>
+                                <div><Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow> </div>
+                                <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, overflow: 'auto' }}></div>
+                            </SplitPane>
 
-                            }
+                            <div>浏览器 </div>
+                            
                         </SplitPane>
                     </Row>
                 </Layout>
