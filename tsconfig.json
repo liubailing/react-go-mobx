@@ -25,6 +25,5 @@
     "src",
   ],
   "files": [
-    "public/browserBridge.js"
   ]
 }

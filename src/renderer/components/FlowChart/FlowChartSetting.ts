@@ -101,7 +101,7 @@ export const colors = {
 };
 
 export const DiagramSetting = {
-    font: '14px Sans-Serif',
+    font: '12px 雅黑 600',
     groupFont: '14px Sans-Serif',
     tipFont: 'bold 14px Sans-Serif',
     groupTip: '将要执行的流程拖放在此处',

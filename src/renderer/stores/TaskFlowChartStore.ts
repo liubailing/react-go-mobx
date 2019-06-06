@@ -292,10 +292,77 @@ export class TaskFlowChart {
     };
 
     /**
- * drop 压在link 后添加 node
- * @param state
- * @param payload
- */
+     * 移动 drop 压在link 后添加 node
+     * @param state
+     * @param payload
+     */
+    @action
+    moveNodeAfterDropLinkHandler = (ev: NodeEvent): void => {
+        if (!ev.toLink || !ev.toLink.from) {
+            return;
+        }
+
+        
+        // 1、修改节点分组
+        this.model.nodeDataArray.map(x=>{
+            if(x.key === this.currKey){
+                x.group = ev.toLink!.group;
+            }
+        }) 
+
+
+
+        // 2、被压的线要移除(过滤掉被压的线条)
+        let fLineInd = -1;
+        let tLineInd = -1;
+        let rmoveLineIndex = -1;
+        let links:FCLinkModel[] =[]
+
+        // let fLine: FCLinkModel;        
+        // let tLine: FCLinkModel;
+        this.model.linkDataArray.map((x,ind)=>{
+            if(x.to === this.currKey){
+                fLineInd = ind;
+            }else if(x.from === this.currKey){
+                tLineInd = ind;
+            } else if(x.from === ev.toLink!.from && x.to === ev.toLink!.to){
+                rmoveLineIndex = ind;
+            }else{
+                links.push(x);
+            }
+        }) 
+        
+
+        // 3、新增的两条线
+        const linksToAdd: FCLinkModel[] = [];
+
+        linksToAdd.push(this.getLink(ev.toLink.from, this.currKey, ev.toLink.group, false));
+        linksToAdd.push(this.getLink(this.currKey, ev.toLink.to, ev.toLink.group, false));
+        if(fLineInd>-1 && tLineInd>-1){
+             // 3、新增的1条线
+            linksToAdd.push(this.getLink(this.model.linkDataArray[fLineInd].from, this.model.linkDataArray[tLineInd].to, this.model.linkDataArray[tLineInd].group, false));
+        }
+        // linkToRemoveIndex = this.model.linkDataArray.findIndex(
+        //     link => link.from === ev.toLink!.from && link.to === ev.toLink!.to
+        // );
+
+        let m = { ...this.model };
+
+        m = {
+            ...m,
+            linkDataArray: [...links,...linksToAdd]
+        };
+
+        this.model = m;
+        this.resetHightlightState();
+    };
+
+
+    /**
+     * drop 压在link 后添加 node
+     * @param state
+     * @param payload
+     */
     @action
     addNodeAfterDropLinkHandler = (ev: NodeEvent): void => {
         if (!ev.toLink || !ev.toLink.from) {
@@ -381,10 +448,10 @@ export class TaskFlowChart {
 
 
     /**
- * 添加相同节点
- * @param state
- * @param ev
- */
+     * 添加相同节点
+     * @param state
+     * @param ev
+     */
     @action
     addNodeBySelfHandler = (ev: NodeEvent): void => {
         if (!ev.toNode || !ev.toNode.key) {
@@ -661,6 +728,10 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },  
                 { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
                 { key: 'loop', label: 'xunhuan', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
+                { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
+                { key: 'cond1', label: '分支1', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
+                { key: 'cond2', label: '分支2', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
+                { key: 'data', label: '提取数据', wfType: FCNodeType.Data as string, group: 'cond2', isGroup: false },
                 { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
             ];
 
@@ -669,8 +740,10 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         if (!links || links.length < 0) {
             links = [
                 { from: 'Begin', to: 'node1', group: '', isCondition: false },
-                { from: 'node1', to: 'loop', group: '', isCondition: false },
-                { from: 'loop', to: 'End', group: '', isCondition: false }
+                { from: 'node1', to: 'cond', group: '', isCondition: false },
+                { from: 'cond', to: 'loop', group: '', isCondition: false },
+                { from: 'loop', to: 'End', group: '', isCondition: false },
+                { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true }
             ]
         }
 

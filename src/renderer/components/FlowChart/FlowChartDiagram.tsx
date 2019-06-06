@@ -93,56 +93,56 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
 
 
-        go.GraphObject.defineBuilder('SubGraphExpanderButton', (args: any): go.Panel => {
-            const button = /** @type {Panel} */ (
-                go.GraphObject.make('Button',
-                    { // set these values for the isSubGraphExpanded binding conversion
-                        '_subGraphExpandedFigure': 'TriangleDown',
-                        '_subGraphCollapsedFigure': 'TriangleRight'
-                    },
-                    go.GraphObject.make(go.Shape,  // the icon
-                        {
-                            name: 'btn_SubExpander',
-                            figure: 'TriangleDown',  // default value for isSubGraphExpanded is true
-                            stroke: "red",
-                            fill: colors.group_font,
-                            background: colors.group_bg,
-                            strokeWidth: 0,
-                            desiredSize: new go.Size(12, 12)
-                        },
-                        // bind the Shape.figure to the Group.isSubGraphExpanded value using this converter:
-                        new go.Binding('figure', 'isSubGraphExpanded',
-                            (exp: boolean, shape: go.Shape): string => {
-                                const but = shape.panel;
-                                return exp ? (but as any)['_subGraphExpandedFigure'] : (but as any)['_subGraphCollapsedFigure'];
-                            }
-                        ).ofObject()
-                    )
-                )
-            ) as go.Panel;
+        // go.GraphObject.defineBuilder('SubGraphExpanderButton', (args: any): go.Panel => {
+        //     const button = /** @type {Panel} */ (
+        //         go.GraphObject.make('Button',
+        //             { // set these values for the isSubGraphExpanded binding conversion
+        //                 '_subGraphExpandedFigure': 'TriangleDown',
+        //                 '_subGraphCollapsedFigure': 'TriangleRight'
+        //             },
+        //             go.GraphObject.make(go.Shape,  // the icon
+        //                 {
+        //                     name: 'btn_SubExpander',
+        //                     figure: 'TriangleDown',  // default value for isSubGraphExpanded is true
+        //                     stroke: "red",
+        //                     fill: colors.group_font,
+        //                     background: colors.group_bg,
+        //                     strokeWidth: 0,
+        //                     desiredSize: new go.Size(12, 12)
+        //                 },
+        //                 // bind the Shape.figure to the Group.isSubGraphExpanded value using this converter:
+        //                 new go.Binding('figure', 'isSubGraphExpanded',
+        //                     (exp: boolean, shape: go.Shape): string => {
+        //                         const but = shape.panel;
+        //                         return exp ? (but as any)['_subGraphExpandedFigure'] : (but as any)['_subGraphCollapsedFigure'];
+        //                     }
+        //                 ).ofObject()
+        //             )
+        //         )
+        //     ) as go.Panel;
 
-            // subgraph expand/collapse behavior
-            button.click = (e: go.InputEvent, btn: go.GraphObject): void => {
-                let group = btn.part;
-                if (group instanceof go.Adornment) group = group.adornedPart;
-                if (!(group instanceof go.Group)) return;
-                const diagram = group.diagram;
-                if (diagram === null) return;
-                const cmd = diagram.commandHandler;
-                if (group.isSubGraphExpanded) {
-                    if (!cmd.canCollapseSubGraph(group)) return;
-                } else {
-                    if (!cmd.canExpandSubGraph(group)) return;
-                }
-                e.handled = true;
-                if (group.isSubGraphExpanded) {
-                    cmd.collapseSubGraph(group);
-                } else {
-                    cmd.expandSubGraph(group);
-                }
-            };
-            return button;
-        });
+        //     // subgraph expand/collapse behavior
+        //     button.click = (e: go.InputEvent, btn: go.GraphObject): void => {
+        //         let group = btn.part;
+        //         if (group instanceof go.Adornment) group = group.adornedPart;
+        //         if (!(group instanceof go.Group)) return;
+        //         const diagram = group.diagram;
+        //         if (diagram === null) return;
+        //         const cmd = diagram.commandHandler;
+        //         if (group.isSubGraphExpanded) {
+        //             if (!cmd.canCollapseSubGraph(group)) return;
+        //         } else {
+        //             if (!cmd.canExpandSubGraph(group)) return;
+        //         }
+        //         e.handled = true;
+        //         if (group.isSubGraphExpanded) {
+        //             cmd.collapseSubGraph(group);
+        //         } else {
+        //             cmd.expandSubGraph(group);
+        //         }
+        //     };
+        //     return button;
+        // });
 
 
         const _this = this;
@@ -207,6 +207,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         go.Panel,
                         'Auto',
                         {
+                            name: 'link_Add',
                             padding: new go.Margin(0, 0, 10, 0),
                             alignment: go.Spot.Top,
                             opacity: 0
@@ -296,6 +297,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             editable: DiagramSetting.renameable,
                             stroke: colors.font,
                             font: DiagramSetting.font
+                            
                         },
                         new go.Binding('text', 'label')
                     )
@@ -490,7 +492,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                     $(go.Shape, 'RoundedRectangle', {
                         name: 'group_Body',
                         stroke: colors.group_border,
-                        strokeWidth: 0.1,
+                        strokeWidth: 1,
                         fill: colors.group_bg
                     }),
                     $(
@@ -1071,7 +1073,23 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
      */
     private mouseDragEnterHandler(e: go.InputEvent, obj: GraphObject): void {
 
-       
+       // used by both the Button Binding and by the changeColor click function
+
+       let node = (obj as any).part;
+       if (node && node.diagram) {
+           node.diagram.startTransaction('Change color');
+
+           let linkAdd = node.findObject('link_Add');
+           if (linkAdd) linkAdd.opacity =1;
+
+           let lbody = node.findObject('link_Body');
+           if (lbody) lbody.stroke = colors.link_highlight;
+
+           let linkArr = node.findObject('link_Arr');
+           if (linkArr) linkArr.fill = colors.link_highlight;
+
+           node.diagram.commitTransaction('Change color');
+       }
 
      }
 
@@ -1082,6 +1100,17 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
      */
     private mouseDragLeaveHandler(e: go.InputEvent, obj: GraphObject, obj1: GraphObject): void { 
         console.log("--mouseDragLeaveHandler--",e)
+        let node = (obj as any).part;
+        if (node && node.diagram) {
+            node.diagram.startTransaction('Change color');
+
+            let linkAdd = node.findObject('link_Add');
+            if (linkAdd) linkAdd.opacity =0;
+
+            let lbody = node.findObject('link_Body');
+            if (lbody) lbody.stroke = colors.link;
+            node.diagram.commitTransaction('Change color');
+        }
     }
 
     /**
@@ -1096,8 +1125,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
         
             if (obj.part instanceof go.Link) {
-                let ev: NodeEvent = { eType: NodeEventType.Drag2Link, toLink: obj.part!.data as FCLinkModel }
-                //this.props.store.addNodeAfterDropLinkHandler(ev);
+                let ev: NodeEvent = { eType: NodeEventType.Drag2Link, toLink: obj.part!.data as FCLinkModel}
+                this.props.store.moveNodeAfterDropLinkHandler(ev);
                 console.log('---- mouseDropHandler ------ ',ev);
                 console.log(' wfDroper  on Link')
             } else if (obj.part instanceof go.Group) {
