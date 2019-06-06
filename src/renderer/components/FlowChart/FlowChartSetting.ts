@@ -1,6 +1,72 @@
 import go, { Diagram } from 'gojs';
 import { BaseNodeModel, DiagramModel, LinkModel } from 'react-gojs';
 
+
+export class FcNode{
+    constructor(type: FCNodeType){
+        this.fcType = type;
+        let title='';
+        let src='';
+        switch (type) {
+            case FCNodeType.Condition:
+                title = '判断条件';
+                src = 'condition';
+                break;
+            case FCNodeType.Data:
+                title = '提取数据';
+                src = 'data';
+                break;
+            case FCNodeType.SubEnd:
+                title = '结束流程';
+                src = 'subend';
+                break;
+            case FCNodeType.Input:
+                title = '输入文字';
+                src = 'input';
+                break;
+            case FCNodeType.Loop:
+                title = '循环';
+                src = 'loop';
+                break;
+            case FCNodeType.LoopBreak:
+                title = '结束循环';
+                src = 'loopbreak';
+                break;
+            case FCNodeType.MouseClick:
+                title = '点击元素';
+                src = 'mouseclick';
+                break;
+            case FCNodeType.MouseHover:
+                title = '移动鼠标到元素上';
+                src = 'mousehover';
+                break;
+            case FCNodeType.OpenWeb:
+                title = '打开网页';
+                src = 'openweb';
+                break;
+            case FCNodeType.Switch:
+                title = '切换下拉选项';
+                src = 'switch';
+                break;
+            case FCNodeType.Verify:
+                title = '识别验证码';
+                src = 'verify';
+                break;
+            default:
+                title = '模拟数据';
+                src = '';
+                break;
+        }
+
+        this.name = title;
+        this.src = src;
+    }
+    fcType: FCNodeType=FCNodeType.Data;
+    name: string='';
+    src: string='';    
+
+}
+
 /**
  * 
  * 相关设置和类
@@ -71,6 +137,8 @@ export enum FCNodeType {
      */
     WFGuideNode = 'wfgridenode'
 }
+
+
 
 export const colors = {
     start: '#69BE70',

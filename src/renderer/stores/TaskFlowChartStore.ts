@@ -2,7 +2,7 @@ import { observable, action } from "mobx";
 import go, { Diagram } from 'gojs';
 import { DiagramModel } from 'react-gojs';
 
-import { DiagramSetting, DiagramState, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, DragNodeEvent, NodeEvent, FCNodeType } from '../components/FlowChart/FlowChartSetting';
+import { DiagramSetting, DiagramState, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, DragNodeEvent, NodeEvent, FCNodeType,FcNode } from '../components/FlowChart/FlowChartSetting';
 
 /**
  * 工作流上 激活的节点
@@ -53,6 +53,17 @@ export interface ITaskFlowChartRuntime {
 export interface ITaskFlowChartStore {
 
     /**
+     * 得到第一个节点
+     */
+    getFirstNode(): ActionNode;
+
+    /**
+    * 得到第一个节点
+    */
+    getNodesByRoot(): ActionNode[];
+
+
+    /**
      * 初始化
      */
     init(nodes?: FCNodeModel[], links?: FCLinkModel[]): void;
@@ -88,7 +99,7 @@ export interface ITaskFlowChartStore {
     * @param parent 父节点
     * @param selected 是否选中
     */
-    appendNode(type: string, data?: any, parent?: string, selected?: boolean): void;
+    appendNode(type: string, data?: any, parent?: string, selected?: boolean): string;
 }
 
 /**
@@ -302,13 +313,13 @@ export class TaskFlowChart {
             return;
         }
 
-        
+
         // 1、修改节点分组
-        this.model.nodeDataArray.map(x=>{
-            if(x.key === this.currKey){
+        this.model.nodeDataArray.map(x => {
+            if (x.key === this.currKey) {
                 x.group = ev.toLink!.group;
             }
-        }) 
+        })
 
 
 
@@ -316,30 +327,30 @@ export class TaskFlowChart {
         let fLineInd = -1;
         let tLineInd = -1;
         let rmoveLineIndex = -1;
-        let links:FCLinkModel[] =[]
+        let links: FCLinkModel[] = []
 
         // let fLine: FCLinkModel;        
         // let tLine: FCLinkModel;
-        this.model.linkDataArray.map((x,ind)=>{
-            if(x.to === this.currKey){
+        this.model.linkDataArray.map((x, ind) => {
+            if (x.to === this.currKey) {
                 fLineInd = ind;
-            }else if(x.from === this.currKey){
+            } else if (x.from === this.currKey) {
                 tLineInd = ind;
-            } else if(x.from === ev.toLink!.from && x.to === ev.toLink!.to){
+            } else if (x.from === ev.toLink!.from && x.to === ev.toLink!.to) {
                 rmoveLineIndex = ind;
-            }else{
+            } else {
                 links.push(x);
             }
-        }) 
-        
+        })
+
 
         // 3、新增的两条线
         const linksToAdd: FCLinkModel[] = [];
 
         linksToAdd.push(this.getLink(ev.toLink.from, this.currKey, ev.toLink.group, false));
         linksToAdd.push(this.getLink(this.currKey, ev.toLink.to, ev.toLink.group, false));
-        if(fLineInd>-1 && tLineInd>-1){
-             // 3、新增的1条线
+        if (fLineInd > -1 && tLineInd > -1) {
+            // 3、新增的1条线
             linksToAdd.push(this.getLink(this.model.linkDataArray[fLineInd].from, this.model.linkDataArray[tLineInd].to, this.model.linkDataArray[tLineInd].group, false));
         }
         // linkToRemoveIndex = this.model.linkDataArray.findIndex(
@@ -350,7 +361,7 @@ export class TaskFlowChart {
 
         m = {
             ...m,
-            linkDataArray: [...links,...linksToAdd]
+            linkDataArray: [...links, ...linksToAdd]
         };
 
         this.model = m;
@@ -720,34 +731,49 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     */
     @action
     init(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
+        let baseDate = false;
 
-        if (!nodes || nodes.length < 0) {
-            nodes = [
-                { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
-                { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },                
-                { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },  
-                { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
-                { key: 'loop', label: 'xunhuan', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
-                { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
-                { key: 'cond1', label: '分支1', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-                { key: 'cond2', label: '分支2', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-                { key: 'data', label: '提取数据', wfType: FCNodeType.Data as string, group: 'cond2', isGroup: false },
-                { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
-            ];
+        if (baseDate) {
+            if (!nodes || nodes.length < 0) {
+                nodes = [
+                    { key: 'Begin', label: '', wfType: FCNodeType.Start as string, group: '', isGroup: false },
+                    { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
+                ];
 
+            }
+
+            if (!links || links.length < 0) {
+                links = [
+                    { from: 'Begin', to: 'End', group: '', isCondition: false }
+                ]
+            }
+        } else {
+            if (!nodes || nodes.length < 0) {
+                nodes = [
+                    { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
+                    { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
+                    { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
+                    { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
+                    { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
+                    { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
+                    { key: 'cond1', label: '分支1', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
+                    { key: 'cond2', label: '分支2', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
+                    { key: 'data', label: '提取数据', wfType: FCNodeType.Data as string, group: 'cond2', isGroup: false },
+                    { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
+                ];
+
+            }
+
+            if (!links || links.length < 0) {
+                links = [
+                    { from: 'Begin', to: 'node1', group: '', isCondition: false },
+                    { from: 'node1', to: 'cond', group: '', isCondition: false },
+                    { from: 'cond', to: 'loop', group: '', isCondition: false },
+                    { from: 'loop', to: 'End', group: '', isCondition: false },
+                    { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true }
+                ]
+            }
         }
-
-        if (!links || links.length < 0) {
-            links = [
-                { from: 'Begin', to: 'node1', group: '', isCondition: false },
-                { from: 'node1', to: 'cond', group: '', isCondition: false },
-                { from: 'cond', to: 'loop', group: '', isCondition: false },
-                { from: 'loop', to: 'End', group: '', isCondition: false },
-                { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true }
-            ]
-        }
-
-
 
         nodes.map(x => {
             //this.tempData[x.key]= x.data;
@@ -765,31 +791,6 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             nodeDataArray: nodes
         }
 
-
-
-        // if (!nodes || !links || nodes.length < 0 || links.length < 0) {
-        //     this.store.model = {
-        //         nodeDataArray: [
-        //             { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, category: DiagramCategory.Start, group: '', isGroup: false },
-        //             { key: 'node1', label: '打开网页', wfType: FCNodeType.Start as string, category: DiagramCategory.FCNode, group: '', isGroup: false },
-        //             { key: 'End', label: '', wfType: FCNodeType.End as string, category: DiagramCategory.End, group: '', isGroup: false }
-        //         ],
-        //         linkDataArray: [
-        //             { from: 'Begin', to: 'node1', group: '', category: DiagramCategory.WFLink, isCondition: false },
-        //             { from: 'node1', to: 'End', group: '', category: DiagramCategory.WFLink, isCondition: false }
-        //         ]
-        //     }
-        // } else {
-
-        //     nodes.map(x=>{
-        //         x.category = this.store.getCategoryByType(x.wfType as FCNodeType);
-        //     })
-
-        //     this.store.model = {
-        //         linkDataArray: links,
-        //         nodeDataArray: nodes
-        //     }
-        // }
     }
 
     /**
@@ -800,11 +801,17 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * @param selected 
      */
     @action
-    appendNode(type: string, data?: any, parent?: string, selected?: boolean) {
-        if (parent) {
-            let node = this.store.model.nodeDataArray.find(x => x.key === parent)
-            this.store.addNodeAfterDropLinkHandler({ eType: NodeEventType.Drag2Node, toNode: node });
-        }
+    appendNode(type: string, data?: any, parent?: string, selected?: boolean): string {
+        
+        let node = this.store.model.nodeDataArray.find(x => x.key === parent);
+        //this.props.store.onDragStartFCNodeHandler({ type: this.props.type, name: this.state.title, event: event } as DragNodeEvent);
+        let fcNode =  new FcNode(type as FCNodeType);
+        this.store.drager = ({ type: fcNode.fcType, name: fcNode.name, event: {} } as DragNodeEvent)
+        //this.props.store.onDragStartFCNodeHandler;
+        if(!parent) parent = '';
+        let link = this.getLastLink(parent);
+        this.store.addNodeAfterDropLinkHandler({ eType: NodeEventType.Drag2Node, toLink: link });
+        return ''
     }
 
     /**
@@ -833,6 +840,126 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         //this.tempData[key]= data;
         return true
 
+    }
+
+    /**
+     * 得到第一个点
+     */
+    private getFirstFCNode = (group: string): FCNodeModel|undefined => {
+        let l = this.getFirstLink(group);
+        if(l){
+             // 找到起始线条              
+             for (let index = 0; index <  this.store.model.nodeDataArray.length; index++) {
+                const element =  this.store.model.nodeDataArray[index];
+                if( l.from  === element.key)
+                {
+                    return element;
+                    break;
+                }
+                
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * 得到最后一个点
+     */
+    private getLastFCNode = (group: string): FCNodeModel|undefined => {
+        let l = this.getLastLink(group);
+        if(l){
+             // 找到起始线条              
+             for (let index = 0; index <  this.store.model.nodeDataArray.length; index++) {
+                const element =  this.store.model.nodeDataArray[index];
+                if( l.to  === element.key)
+                {
+                    return element;
+                    break;
+                }
+                
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * 得到第一条线
+     */
+    private getFirstLink= (group: string): FCLinkModel|undefined => {
+        //找到组内所有的点和线
+        let links: FCLinkModel[] = [];
+        let forms: string[] = [];
+        let tos: string[] = [];
+        this.store.model.linkDataArray.map(x => {
+            if (x.group === group) {
+                links.push(x);
+                forms.push(x.from);
+                tos.push(x.to);
+            }
+        });
+
+        // 找到起始线条              
+        let f: string = '';
+        for (let i = 0; i < forms.length; i++) {
+            if (!tos.includes(forms[i])) {
+                f = forms[i];
+                break;
+            }
+        }
+        if(!f) {
+            for (let index = 0; index <  this.store.model.linkDataArray.length; index++) {
+                const element =  this.store.model.linkDataArray[index];
+                if(f === element.from)
+                {
+                    return element;
+                    break;
+                }
+                
+            }
+        } 
+        return undefined;
+    }
+
+    /**
+     * 得到最后条线
+     */
+    private getLastLink= (group: string):  FCLinkModel|undefined => {
+        //找到组内所有的点和线
+        let links: FCLinkModel[] = [];
+        let forms: string[] = [];
+        let tos: string[] = [];
+        this.store.model.linkDataArray.map(x => {
+            if (x.group === group) {
+                links.push(x);
+                forms.push(x.from);
+                tos.push(x.to);
+            }
+        });
+
+        // 找到起始线条              
+        let t: string = '';
+        for (let i = 0; i < tos.length; i++) {
+            if (!forms.includes(tos[i])) {
+                t = tos[i];
+                break;
+            }
+
+        }
+
+        if(!t) {
+            for (let index = 0; index <  this.store.model.linkDataArray.length; index++) {
+                const element =  this.store.model.linkDataArray[index];
+                if(t === element.to)
+                {
+                    return element;
+                    break;
+                }                
+            }
+        } 
+        return undefined;
+    
     }
 
     private getNode = (key: string): ActionNode => {
@@ -918,8 +1045,10 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 }
 
             }
-           
-            return {...res,...node,...{type: node!.wfType}};
+            if (node && node.wfType)
+                return { ...res, ...node, ...{ type: node!.wfType } };
+            else
+                return { ...res, ...node };
         }
         return { key: '', type: '', parentKey: '', childKeys: [], data: null }
     }
@@ -946,6 +1075,20 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         })
 
         return arr;
+    }
+
+    /**
+     * 得到第一个节点
+     */
+    getNodesByRoot(): ActionNode[] {
+        return []
+    }
+
+    /**
+     * 得到第一个节点
+     */
+    getFirstNode(): ActionNode {
+        return new ActionNode;
     }
 
 }

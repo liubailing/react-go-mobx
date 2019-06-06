@@ -69,7 +69,8 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
         //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
     }
 
-    render() {
+
+    render=()=> {
         return (
             <div>
                 <Layout className='customtask'>
@@ -78,11 +79,16 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
 
                     <Row className="customtask-main">
                         <SplitPane split="horizontal" defaultSize="50%" onChange={size => this.onWindowResize()} ref='mainSpliter'>
-                            
-
-                            <SplitPane split="vertical" defaultSize="75%" minSize={500}>
+                            <SplitPane split="vertical" defaultSize="85%" minSize={500}>
                                 <div><Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow> </div>
-                                <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, overflow: 'auto' }}></div>
+                                <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, overflow: 'auto' }}>
+                                    <Row  type='flex'>
+                                        <Col><Button>得到第一个节点</Button></Col>
+                                    </Row>
+                                    <Row type='flex'>
+                                        <Col><Button onClick={this.props.customTaskStore.onClickAppendNode}>追加节点</Button></Col><Col><Button>追加节点到循环</Button></Col>
+                                    </Row>                               
+                                </div>
                             </SplitPane>
 
                             <div>浏览器 </div>

@@ -91,4 +91,12 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
     }
 
+
+    
+    //删除流程图上的节点
+    @action
+    onClickAppendNode = async (): Promise<void> => {
+        this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData)
+    }
+
 }
