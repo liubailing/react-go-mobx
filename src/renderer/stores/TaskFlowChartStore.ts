@@ -658,7 +658,9 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             nodes = [
                 { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
                 { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },                
-                { key: 'node123', label: '打开网页123', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
+                { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },  
+                { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
+                { key: 'loop', label: 'xunhuan', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
                 { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
             ];
 
@@ -667,7 +669,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         if (!links || links.length < 0) {
             links = [
                 { from: 'Begin', to: 'node1', group: '', isCondition: false },
-                { from: 'node1', to: 'End', group: '', isCondition: false }
+                { from: 'node1', to: 'loop', group: '', isCondition: false },
+                { from: 'loop', to: 'End', group: '', isCondition: false }
             ]
         }
 

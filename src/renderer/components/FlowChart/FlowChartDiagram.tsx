@@ -175,8 +175,11 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                     go.Link,
                     {
                         mouseLeave: this.mouseLeaveHandler,
-                        mouseEnter: this.mouseEnterHandler,
-                        mouseDragLeave: this.mouseEnterHandler,
+                        mouseEnter: this.mouseEnterHandler, 
+                        
+                        mouseDragEnter: this.mouseDragEnterHandler,
+                        mouseDragLeave: this.mouseDragLeaveHandler,
+                        mouseDrop: this.mouseDropHandler,
                         movable: false,
                         deletable: false
                     },
@@ -266,10 +269,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
                         movable: DiagramSetting.moveNode,
-                        mouseDragEnter: this.mouseDragEnterHandler,
-                        mouseDragLeave: this.mouseDragLeaveHandler,
-                        
-                        mouseDrop: this.mouseDropHandler,
+                       
                         selectionChanged: (node: any) => {
                             //this.props.store.currKey = node.key as string;
                             console.log('-----------selectionChanged-----------',node)
@@ -1093,6 +1093,22 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
          //console.log("--mouseDropHandler--",e);
          console.log("--mouseDropHandler--", this.props.store.diagram.commandHandler.canUndo()); ;
          this.props.store.diagram.commandHandler.undo();
+
+        
+            if (obj.part instanceof go.Link) {
+                let ev: NodeEvent = { eType: NodeEventType.Drag2Link, toLink: obj.part!.data as FCLinkModel }
+                //this.props.store.addNodeAfterDropLinkHandler(ev);
+                console.log('---- mouseDropHandler ------ ',ev);
+                console.log(' wfDroper  on Link')
+            } else if (obj.part instanceof go.Group) {
+                console.log(' wfDroper Group ');
+            } else if (obj.part instanceof go.Node) {
+                // let ev: NodeEvent = { eType: NodeEventType.Drag2Node, toNode: obj.part!.data as FCNodeModel }
+                // this.props.store.addNodeAfterDropNodeHandler(ev);
+                // console.log('wfDroper Node');
+            } else {
+            }
+        
         // myDiagram.redraw();
         // if (obj && obj.part) {
         //     if (obj instanceof go.Link) {
