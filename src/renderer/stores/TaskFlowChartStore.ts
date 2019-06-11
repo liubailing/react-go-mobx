@@ -1,4 +1,4 @@
-import { observable, action } from "mobx";
+import { observable, action,toJS } from "mobx";
 import go, { Diagram } from 'gojs';
 import { DiagramModel } from 'react-gojs';
 
@@ -64,11 +64,11 @@ export interface ITaskFlowChartStore {
     */
     getNodesByRoot(parentId?: string): ActionNode[];
 
-
     /**
      * 初始化
      */
     init(nodes?: FCNodeModel[], links?: FCLinkModel[]): void;
+
     /**
      * 
      * @param key 
@@ -780,50 +780,20 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     */
     @action
     init(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
-        let baseDate = false;
+      
+        if (!nodes || nodes.length < 0) {
+            nodes = [
+                { key: 'Begin', label: '', wfType: FCNodeType.Start as string, group: '', isGroup: false },
+                { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
+            ];
 
-        if (baseDate) {
-            if (!nodes || nodes.length < 0) {
-                nodes = [
-                    { key: 'Begin', label: '', wfType: FCNodeType.Start as string, group: '', isGroup: false },
-                    { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
-                ];
-
-            }
-
-            if (!links || links.length < 0) {
-                links = [
-                    { from: 'Begin', to: 'End', group: '', isCondition: false }
-                ]
-            }
-        } else {
-            if (!nodes || nodes.length < 0) {
-                nodes = [
-                    { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
-                    { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
-                    { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
-                    { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
-                    { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
-                    { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
-                    { key: 'cond1', label: '分支1', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-                    { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeType.WFGuideNode  as string, group: 'cond1', isGroup: false },
-                    { key: 'cond2', label: '分支2', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-                    { key: 'data', label: '提取数据', wfType: FCNodeType.Data as string, group: 'cond2', isGroup: false },
-                    { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
-                ];
-
-            }
-
-            if (!links || links.length < 0) {
-                links = [
-                    { from: 'Begin', to: 'node1', group: '', isCondition: false },
-                    { from: 'node1', to: 'cond', group: '', isCondition: false },
-                    { from: 'cond', to: 'loop', group: '', isCondition: false },
-                    { from: 'loop', to: 'End', group: '', isCondition: false },
-                    { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true }
-                ]
-            }
         }
+
+        if (!links || links.length < 0) {
+            links = [
+                { from: 'Begin', to: 'End', group: '', isCondition: false }
+            ]
+        }        
 
         nodes.map(x => {
             //this.tempData[x.key]= x.data;
@@ -856,9 +826,17 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         //let node = this.store.model.nodeDataArray.find(x => x.key === parent);
        
         if (!parent) parent = '';
+
+        if(!!parent){
+            let ind =  this.store.model.nodeDataArray.findIndex(x => x.key === parent); 
+            if(ind<0){
+                return '';
+            } 
+        }
        
         let key = this.getLastFCNodeKey(parent); 
         let fcNode = new FcNode(type as FCNodeType);
+
         if(!!key){
             let toNode = this.store.model.nodeDataArray.find(x => x.key === key);   
             this.store.drager = ({ type: fcNode.fcType, name: fcNode.name, event: {} } as DragNodeEvent)        
@@ -1156,11 +1134,17 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
 
         //1、找到要删除的节点
         const nodeToRemoveIndex = model.nodeDataArray.findIndex(node => node.key === key);
+        const curNode = {...model.nodeDataArray[nodeToRemoveIndex]};
         if (nodeToRemoveIndex === -1) {
             return;
+        }else{
+            model.nodeDataArray = [
+                ...model.nodeDataArray.slice(0, nodeToRemoveIndex),
+                ...model.nodeDataArray.slice(nodeToRemoveIndex + 1)
+            ]
         }
 
-        const curNode = model.nodeDataArray[nodeToRemoveIndex];
+      
         let fromByCurNode = -1;
         let toByCurNode = -1;
         let newLink:FCLinkModel|undefined = undefined;
@@ -1182,11 +1166,12 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
 
         //4、删除该点之前的两条线
         if (removeLinks && removeLinks.length > 0) {
+           
             removeLinks.forEach(curLink => {
                 const linkToRemoveIndex = model.linkDataArray.findIndex(
                     link => link.from === curLink.from && link.to === curLink.to
                 );
-                if (linkToRemoveIndex > 1) {
+                if (linkToRemoveIndex > -1) {
                     model.linkDataArray = [
                         ...model.linkDataArray.slice(0, linkToRemoveIndex),
                         ...model.linkDataArray.slice(linkToRemoveIndex + 1)
@@ -1199,18 +1184,42 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         //5、如果是组，则需要删除组内的所有元素
         let delKeys:Set<string>= new Set<string>();
         delKeys.add(curNode.key);
+        //console.log(`----delKey-------`,toJS(curNode.key))
         if (curNode.isGroup){
             //5.1递归删除点、线
-
             do{
-                for (let index = 0; index < model.nodeDataArray.length; index++) {
-                    const element = model.nodeDataArray[index];
+                delKeys.forEach(x=>{
+                    let newNodes :FCNodeModel[] =[];
+                    for (let index = 0; index < model.nodeDataArray.length; index++) {
+                        const element = model.nodeDataArray[index];
+                        if(element.group != x ){
+                            newNodes.push(element);                            
+                        }else{
+                           // console.log(`----delKey-------`,toJS(curNode.key))
+                            if(element.isGroup)
+                            {
+                                delKeys.add(element.key); //递归做下一步循环
+                            }
+                        }
+                    }
 
-                        
+                    let newLinks:FCLinkModel[] =[];
+                    for (let index = 0; index < model.linkDataArray.length; index++) {
+                        const element = model.linkDataArray[index];
+                        if(x !== element.group){
+                            newLinks.push(element);
+                        }                                
+    
+                    }
 
-                }
+                    delKeys.delete(x);
+                    model.nodeDataArray = [...newNodes];
+                    model.linkDataArray = [...newLinks];
+                });
+              
 
-            }while(delKeys.size>0)
+            }while(delKeys.size>0);
+
 
         } 
 
@@ -1221,11 +1230,9 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             //增加一个提示节点
             nodeAdd = [...nodeAdd, this.store.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, curNode.group, false)]
         }
-
-
  
 
-        //this.store.model =  this.store.deleteOneNodeByKey(this.store.model,key);
+        this.store.model =  model;
     }
 
 }
