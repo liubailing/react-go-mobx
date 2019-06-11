@@ -680,7 +680,7 @@ export class TaskFlowChart {
         return cate;
     }
 
-    private getOneNode = (wfType: FCNodeType, payload: string, group: string = '', isGroup: boolean = false, isCond: boolean = false): FCNodeModel => {
+    getOneNode = (wfType: FCNodeType, payload: string, group: string = '', isGroup: boolean = false, isCond: boolean = false): FCNodeModel => {
 
         return {
             key: this.getRandomKey(),
@@ -710,7 +710,7 @@ export class TaskFlowChart {
     /**
      * 删除一个点
      */
-    deleteOneNodeByKey = (model: DiagramModel<FCNodeModel, FCLinkModel>, key: string): DiagramModel<FCNodeModel, FCLinkModel> => {
+    private deleteOneNodeByKey = (model: DiagramModel<FCNodeModel, FCLinkModel>, key: string): DiagramModel<FCNodeModel, FCLinkModel> => {
 
         //找到要删除的节点
         const nodeToRemoveIndex = model.nodeDataArray.findIndex(node => node.key === key);
@@ -1150,8 +1150,82 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     /**
      * 删除某一个节点
      */
+    @action
     deleteNodeByKey(key: string): void {
-      this.store.model =  this.store.deleteOneNodeByKey(this.store.model,key);
+        let model =  {...this.store.model };
+
+        //1、找到要删除的节点
+        const nodeToRemoveIndex = model.nodeDataArray.findIndex(node => node.key === key);
+        if (nodeToRemoveIndex === -1) {
+            return;
+        }
+
+        const curNode = model.nodeDataArray[nodeToRemoveIndex];
+        let fromByCurNode = -1;
+        let toByCurNode = -1;
+        let newLink:FCLinkModel|undefined = undefined;
+        //2、找到要删除该点对应的关系线
+        const removeLinks = model.linkDataArray.filter((x,ind) => {
+            if( x.from == key) fromByCurNode = ind;
+            if( x.to == key) toByCurNode = ind;
+            return x.from == key || x.to == key
+        });
+
+        //3、判断是否需要新增一条线
+        if(fromByCurNode>-1 && toByCurNode>-1)
+        {
+            newLink  =  {...model.linkDataArray[fromByCurNode]};
+            newLink.from =  model.linkDataArray[toByCurNode].from;
+            //3.1 新增一条线
+            model.linkDataArray.push(newLink);          
+        }
+
+        //4、删除该点之前的两条线
+        if (removeLinks && removeLinks.length > 0) {
+            removeLinks.forEach(curLink => {
+                const linkToRemoveIndex = model.linkDataArray.findIndex(
+                    link => link.from === curLink.from && link.to === curLink.to
+                );
+                if (linkToRemoveIndex > 1) {
+                    model.linkDataArray = [
+                        ...model.linkDataArray.slice(0, linkToRemoveIndex),
+                        ...model.linkDataArray.slice(linkToRemoveIndex + 1)
+                    ]
+                }
+            });
+        }
+
+
+        //5、如果是组，则需要删除组内的所有元素
+        let delKeys:Set<string>= new Set<string>();
+        delKeys.add(curNode.key);
+        if (curNode.isGroup){
+            //5.1递归删除点、线
+
+            do{
+                for (let index = 0; index < model.nodeDataArray.length; index++) {
+                    const element = model.nodeDataArray[index];
+
+                        
+
+                }
+
+            }while(delKeys.size>0)
+
+        } 
+
+
+        //6、如果是删除组内删除的最后一个点，应该给回提示
+        let nodeAdd: FCNodeModel[] = [];
+        if (curNode.group !== "" && model.nodeDataArray.findIndex(node => node.key === curNode.group) < 0) {
+            //增加一个提示节点
+            nodeAdd = [...nodeAdd, this.store.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, curNode.group, false)]
+        }
+
+
+ 
+
+        //this.store.model =  this.store.deleteOneNodeByKey(this.store.model,key);
     }
 
 }
