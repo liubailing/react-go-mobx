@@ -60,12 +60,21 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
     }
 
 
-
     /**
      * 尺寸变化时重置浏览器位置
      */
     @action
     private onWindowResize = async (): Promise<void> => {
+        //console.log()
+        //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
+    }
+
+    /**
+     * 尺寸变化时重置浏览器位置
+     */
+    @action
+    private onChangeHorizontal = async (size:any): Promise<void> => {
+        //console.log()
         //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
     }
 
@@ -78,20 +87,31 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                     </Row>
 
                     <Row className="customtask-main">
-                        <SplitPane split="horizontal" defaultSize="50%" onChange={size => this.onWindowResize()} ref='mainSpliter'>
-                            <SplitPane split="vertical" defaultSize="85%" minSize={500}>
-                                <div><Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow> </div>
-                                <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, overflow: 'auto' }}>
-                                    <Row  type='flex'>
-                                        <Col><Button>得到第一个节点</Button></Col>
+                        <SplitPane split="horizontal" defaultSize="60%" onChange={size => this.onChangeHorizontal(size)}  minSize={300} ref='mainSpliter'>
+                            <SplitPane split="vertical" defaultSize="85%" minSize={500} className={'divSplitH'}>
+                                <Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow>
+                                <div className='divActions'>
+                                    <Row  type='flex'   className='divActionItem'>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickGetFirstNode()}>得到第一个节点</Button></Col>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickGetFirstNode('cond2')}>得到 分支2第一个节点</Button></Col>
                                     </Row>
-                                    <Row type='flex'>
-                                        <Col><Button onClick={this.props.customTaskStore.onClickAppendNode}>追加节点</Button></Col><Col><Button>追加节点到循环</Button></Col>
-                                    </Row>                               
+                                    <Row type='flex'  className='divActionItem'>
+                                        <Col><Button onClick={()=>this.props.customTaskStore.onClickAppendNode()}>追加节点</Button></Col>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickAppendNode("cond1")}>追加节点 分支1</Button></Col>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickAppendNode("cond2")}>追加节点 分支2</Button></Col>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickAppendNode("loop")}>追加节点 循环</Button></Col>
+                                    </Row> 
+                                    <Row  type='flex'  className='divActionItem'>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickDeleteNodeHandler("node1")}>删除节点  循环</Button></Col>
+                                        <Col><Button  onClick={()=>this.props.customTaskStore.onClickDeleteNodeHandler("loop")}>删除节点  循环</Button></Col>
+                                    </Row> 
+                                    <Row  type='flex'  className='divActionItem'>
+                                        <Col><div id='divResult'></div></Col>
+                                    </Row>                                  
                                 </div>
                             </SplitPane>
 
-                            <div>浏览器 </div>
+                            <div> 浏览器 </div>
                             
                         </SplitPane>
                     </Row>

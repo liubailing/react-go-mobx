@@ -92,11 +92,29 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     }
 
 
-    
-    //删除流程图上的节点
+      //删除流程图上的节点
+      @action
+      onClickDeleteNodeHandler = async (key:string): Promise<void> => {
+          //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
+          this.taskWorkflowStore.deleteNodeByKey(key);
+      }
+
+      
+    //追加节点
     @action
-    onClickAppendNode = async (): Promise<void> => {
-        this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData)
+    onClickAppendNode = async (pId?:string): Promise<void> => {
+       let key =  this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
+       console.log(key);
+       document.getElementById("divResult")!.innerHTML= key;
+    }
+
+    //得到第一个节点
+    @action 
+    onClickGetFirstNode= async (pId?:string): Promise<void> => {
+      let node =  this.taskWorkflowStore.getFirstNode(pId)
+      console.log('---getFirstNode----',node)
+
+      document.getElementById("divResult")!.innerHTML= node.toString();
     }
 
 }

@@ -1,73 +1,120 @@
-.customtask{
-    .customtask-header{
-        padding:20px;
-        button{
+.customtask {
+    .customtask-header {
+        padding: 20px;
+
+        button {
             margin-right: 12px;
         }
-        .customtask-header-input{
-            flex: 1 1 auto;margin: 0 50px;
+
+        .customtask-header-input {
+            flex: 1 1 auto;
+            margin: 0 50px;
         }
-        .customtask-header-switch{
-            display: flex;align-items: center;
-            span{
+
+        .customtask-header-switch {
+            display: flex;
+            align-items: center;
+
+            span {
                 margin: 0 8px;
             }
         }
     }
-    .customtask-main{
-        position: absolute;left: 0;right: 0;bottom: 0;top: 113px;border-top: 1px solid @line-color;
 
-        .customtask-content-box{
-            padding: 10px 16px;min-width: 100%;
-            .customtask-table-area{
+    .customtask-main {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 113px;
+        border-top: 1px solid @line-color;
+
+        .customtask-content-box {
+            padding: 10px 16px;
+            min-width: 100%;
+
+            .customtask-table-area {
                 width: 100%;
-                .customtask-table{
-                    width: 100%;border: solid 1px @border-color-base;background: #ffffff;
-                    .customtask-table-header{
-                        width: 100%;border-bottom: solid 1px @border-color-base;
-                        .customtask-table-column{
-                            border-right: 1px solid @border-color-base;height: 25px;line-height: 25px;padding:0 5px;
+
+                .customtask-table {
+                    width: 100%;
+                    border: solid 1px @border-color-base;
+                    background: #ffffff;
+
+                    .customtask-table-header {
+                        width: 100%;
+                        border-bottom: solid 1px @border-color-base;
+
+                        .customtask-table-column {
+                            border-right: 1px solid @border-color-base;
+                            height: 25px;
+                            line-height: 25px;
+                            padding: 0 5px;
                         }
-                        .customtask-table-column:nth-last-of-type(1){
-                             border-right: 0
-                        }                                    
-                    }            
-                    .customtask-table-body{
-                        max-height: 150px;overflow: auto;height: auto;
-                        .customtask-table-row{
+
+                        .customtask-table-column:nth-last-of-type(1) {
+                            border-right: 0
+                        }
+                    }
+
+                    .customtask-table-body {
+                        max-height: 150px;
+                        overflow: auto;
+                        height: auto;
+
+                        .customtask-table-row {
                             border-bottom: solid 1px @border-color-base;
-                            .customtask-table-column{
-                                border-right: 1px solid @border-color-base;height: 25px;line-height: 25px;padding:0 5px;
-                                .ant-select{
-                                    .ant-select-selection{
-                                        border: none;box-shadow: none;
+
+                            .customtask-table-column {
+                                border-right: 1px solid @border-color-base;
+                                height: 25px;
+                                line-height: 25px;
+                                padding: 0 5px;
+
+                                .ant-select {
+                                    .ant-select-selection {
+                                        border: none;
+                                        box-shadow: none;
                                     }
                                 }
                             }
-                            .customtask-table-column:nth-last-of-type(1){
-                                 border-right: 0
+
+                            .customtask-table-column:nth-last-of-type(1) {
+                                border-right: 0
                             }
                         }
-                        .customtask-table-row:nth-last-of-type(1){
+
+                        .customtask-table-row:nth-last-of-type(1) {
                             border: none;
                         }
                     }
                 }
-            }            
+            }
         }
 
-        .customtask-browser-area{
-            .customtask-browser-header{
+        .customtask-browser-area {
+            .customtask-browser-header {
                 padding: 10px;
-                input{
+
+                input {
                     flex: 1
                 }
-                .anticon{
-                    margin: 0 10px;font-size: 18px;cursor: pointer;
+
+                .anticon {
+                    margin: 0 10px;
+                    font-size: 18px;
+                    cursor: pointer;
                 }
             }
-            .customtask-browser-tips{
-                background: #eef8ff;height: 32px;border: 1px solid #2195FB;padding: 0 12px;color: #2195FB;margin: 0 12px;border-radius: 4px;
+
+            .customtask-browser-tips {
+                background: #eef8ff;
+                height: 32px;
+                border: 1px solid #2195FB;
+                padding: 0 12px;
+                color: #2195FB;
+                margin: 0 12px;
+                border-radius: 4px;
             }
         }
     }
@@ -85,12 +132,12 @@
     background-clip: padding-box;
 }
 
- .Resizer:hover {
+.Resizer:hover {
     -webkit-transition: all 2s ease;
     transition: all 2s ease;
 }
 
- .Resizer.horizontal {
+.Resizer.horizontal {
     height: 11px;
     margin: -5px 0;
     border-top: 5px solid rgba(255, 255, 255, 0);
@@ -116,9 +163,34 @@
     border-left: 5px solid rgba(0, 0, 0, 0.5);
     border-right: 5px solid rgba(0, 0, 0, 0.5);
 }
+
 .Resizer.disabled {
-  cursor: not-allowed;
+    cursor: not-allowed;
 }
+
 .Resizer.disabled:hover {
-  border-color: transparent;
+    border-color: transparent;
+}
+
+.divActions {
+    position: 'absolute';
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: 'auto';
+    .divActionItem {
+        padding: 5px 0;
+        border-bottom: 1px solid red;
+    }
+
+}
+
+.divSplitH{
+    position: 'absolute';
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: 'auto';
 }

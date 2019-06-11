@@ -39,17 +39,17 @@ class FlowChart extends Component<FlowChartProps  ,FlowChartState> {
 
         return (
             <div className="divFlowChart" id="divFlowChart">
-            <div className="divFCNodes">
-                {arr &&
-                    arr.map((e, i)=> {                      
-                        return <FlowChartNode key={i} type={e} store={this.props.store} />;
-                    })}
-                
+                <div className="divFCNodes">
+                    {arr &&
+                        arr.map((e, i)=> {                      
+                            return <FlowChartNode key={i} type={e} store={this.props.store} />;
+                        })}
+                    
+                </div>
+                <div className="divFCDiagrams">
+                    <FlowChartDroper   store={this.props.store}/>
+                </div>
             </div>
-            <div className="divFCDiagrams">
-                <FlowChartDroper   store={this.props.store}/>
-            </div>
-        </div>
         );
     }
 }

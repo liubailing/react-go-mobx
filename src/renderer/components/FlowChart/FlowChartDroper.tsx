@@ -90,7 +90,7 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
     render() {
         return (
             <div
-                className="wfDiagram"
+                className="divFCDiagram"
                 style={{ backgroundColor: '#fff' }}
                 onDragEnter={(event: any) => {
                     if (!this.props.store.drager) event.preventDefault();
