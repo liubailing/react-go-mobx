@@ -242,7 +242,7 @@ export class TaskFlowChart {
      * @param payload
      */
     @action
-    addNodeAfterDropNodeHandler = (ev: NodeEvent,isOnly:boolean=true): string => {
+    addNodeAfterDropNodeHandler = (ev: NodeEvent,isOnly:boolean=true, _data?: any): string => {
         if (!ev.toNode || !ev.toNode.key) {
             return '';
         }
@@ -253,12 +253,12 @@ export class TaskFlowChart {
         }
 
         if(isOnly)
-        if (ev.toNode.category === DiagramCategory.ConditionSwitch || ev.toNode.category === DiagramCategory.LoopGroup) {
-            if (this.model.nodeDataArray.findIndex(x => x.group === ev.toNode!.key) > -1) {
-                console.log('条件分支,循环 只能支持一个流程');
-                return '';
+            if (ev.toNode.category === DiagramCategory.ConditionSwitch || ev.toNode.category === DiagramCategory.LoopGroup) {
+                if (this.model.nodeDataArray.findIndex(x => x.group === ev.toNode!.key) > -1) {
+                    console.log('条件分支,循环 只能支持一个流程');
+                    return '';
+                }
             }
-        }
 
         let node: FCNodeModel | null = null;
         let nodeAdd: boolean = false;
@@ -285,18 +285,22 @@ export class TaskFlowChart {
                     node.isGroup = true;
                     if (this.drager.type === FCNodeType.Condition) {
                         node.hasChild = true;
-                        // 1.2 默认生成两个字条件
+                        // 1.2,如果是条件， 默认生成两个子条件
                         let n: FCNodeModel;
                         for (let i = 0; i < 2; i++) {
                             n = this.getOneNode(FCNodeType.ConditionSwitch, this.drager.name, node.key, true);
+                             // 1.2.1, 如果是子条件， 默认添加提示文本
                             nodes_Con = [...nodes_Con, ...[n, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, n.key, false)]]
                         }
                         links_Con.push({
                             ...this.getLink(nodes_Con[0].key, nodes_Con[2].key, nodes_Con[2].group, true)
                         });
                     } else if (this.drager.type === FCNodeType.Loop) {
+                        // 1.3,如果是循环， 默认生成两个字条件
                         nodes_Con = [...nodes_Con, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, node.key, false)]
                     }
+                }else{
+                    node= {...node,...{data:_data}}
                 }
                 nodeAdd = true;
                 break;
@@ -314,6 +318,7 @@ export class TaskFlowChart {
         const linksToAdd: FCLinkModel[] = [];
         linkToRemoveIndex = this.model.linkDataArray.findIndex(x => x.from === ev.toNode!.key);
         if (linkAction) {
+            // 2、找出要移除的线
             if (linkToRemoveIndex > -1) {
                 oldLink = this.model.linkDataArray[linkToRemoveIndex];
             }
@@ -328,7 +333,7 @@ export class TaskFlowChart {
         }
 
         let m = { ...this.model };
-        // 压在辅助点上
+        // 4、压在提示文本上 ，删除提示文本
         if (ev.toNode.category == DiagramCategory.WFGuideNode) {
             m = this.deleteOneNodeByKey(m, ev.toNode.key)
         }
@@ -445,44 +450,33 @@ export class TaskFlowChart {
 
         let nodes_Con: FCNodeModel[] = [];
         let links_Con: FCLinkModel[] = [];
-        // 1、锁定节点
-        switch (ev.eType) {
-            case NodeEventType.Drag2Link:
-                // 1.1 如果是新节点
-                if (!this.drager) {
-                    return;
-                }
-                node = this.getOneNode(this.drager.type, this.drager.name, ev.toLink.group);
-                if (this.isGroupArr.includes(this.drager.type)) {
-                    node.isGroup = true;
-                    if (this.drager.type === FCNodeType.Condition) {
-                        node.hasChild = true;
-                        // 1.2 默认生成两个字条件
-                        let n: FCNodeModel;
-                        for (let i = 0; i < 2; i++) {
-                            n = this.getOneNode(FCNodeType.ConditionSwitch, this.drager.name, node.key, true);
-                            nodes_Con = [...nodes_Con, ...[n, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, n.key, false)]]
-                        }
-                        links_Con.push({
-                            ...this.getLink(nodes_Con[0].key, nodes_Con[2].key, nodes_Con[2].group, true)
-                        });
-                    } else if (this.drager.type === FCNodeType.Loop) {
-                        nodes_Con = [...nodes_Con, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, node.key, false)]
-                    }
-                }
-                nodeAdd = true;
-                break;
-            case NodeEventType.Move2Link:
-                // 1.2 如果是拖动已有节点
-                const ind = this.model.nodeDataArray.findIndex(x => x.key === this.currKey);
-                if (ind < 0) {
-                    return;
-                }
-                node = this.model.nodeDataArray[ind];
-                break;
-            default:
-                return;
+       
+
+        // 1.1 如果是新节点
+        if (!this.drager) {
+            return;
         }
+
+         // 1、锁定节点
+        node = this.getOneNode(this.drager.type, this.drager.name, ev.toLink.group);
+        if (this.isGroupArr.includes(this.drager.type)) {
+            node.isGroup = true;
+            if (this.drager.type === FCNodeType.Condition) {
+                node.hasChild = true;
+                // 1.2 默认生成两个字条件
+                let n: FCNodeModel;
+                for (let i = 0; i < 2; i++) {
+                    n = this.getOneNode(FCNodeType.ConditionSwitch, this.drager.name, node.key, true);
+                    nodes_Con = [...nodes_Con, ...[n, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, n.key, false)]]
+                }
+                links_Con.push({
+                    ...this.getLink(nodes_Con[0].key, nodes_Con[2].key, nodes_Con[2].group, true)
+                });
+            } else if (this.drager.type === FCNodeType.Loop) {
+                nodes_Con = [...nodes_Con, this.getOneNode(FCNodeType.WFGuideNode, DiagramSetting.groupTip, node.key, false)]
+            }
+        }
+        nodeAdd = true
 
         // 2、被压的线要移除
         let linkToRemoveIndex = -1;
@@ -603,14 +597,13 @@ export class TaskFlowChart {
     };
 
 
-       /**
-     * 添加相同节点
+    /**
+     * 添加节点
      * @param state
      * @param ev
      */
     @action
-    addNodeToParnetfHandler = (node:FcNode,parentKey:string): string => {
-  
+    addNodeToParnetHandler = (node:FcNode,parentKey:string): string => {  
 
         var newnode = this.getOneNode(node.fcType,node.name, parentKey, true);
 
@@ -869,24 +862,21 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             } 
         }
        
-        let key = this.getLastFCNodeKey(parent); 
+        let parentKey = this.getLastFCNodeKey(parent); 
         let fcNode = new FcNode(type as FCNodeType);
 
-        if(!!key){
-            let toNode = this.store.model.nodeDataArray.find(x => x.key === key);   
+        if(!!parentKey){
+            let toNode = this.store.model.nodeDataArray.find(x => x.key === parentKey);   
             this.store.drager = ({ type: fcNode.fcType, name: fcNode.name, event: {} } as DragNodeEvent)        
             let newKey =  this.store.addNodeAfterDropNodeHandler({ eType: NodeEventType.Drag2Node, toNode: toNode },false);
-            //this.store.drager = null;
+            this.store.drager = null;
             return newKey;
         }else{
            //this.store.model.nodeDataArray.push({wftype: fcNode.fcType, name: fcNode.name});
-           let newKey =  this.store.addNodeToParnetfHandler(fcNode,parent);
+           let newKey =  this.store.addNodeToParnetHandler(fcNode,parent);
            return newKey;
            
         }
-
-      
-        return ''
     }
 
     /**

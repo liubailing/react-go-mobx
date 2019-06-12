@@ -24,6 +24,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
 
     taskId: string ='';
+    @observable currKey:string ='';
 
     @observable curCount:number = 0;
 
@@ -108,6 +109,14 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
        let key =  this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
     //    console.log(key);      
        this.logs(`追加key:${key}`);
+    }
+
+    //追加节点
+    @action
+    onClickAppendNodeByType = async (type: ActionNodeType ,pId?:string): Promise<void> => {
+        this.currKey =  this.taskWorkflowStore.appendNode(type,{data:'test.data'},pId);
+    //    console.log(key);      
+        this.logs(`追加key:${this.currKey}`);
     }
 
     //得到第一个节点

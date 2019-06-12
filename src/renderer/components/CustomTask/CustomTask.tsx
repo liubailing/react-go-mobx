@@ -6,6 +6,7 @@ import { action } from "mobx";
 import SplitPane from 'react-split-pane';
 import { CustomTaskStore } from '../../stores/CustomTask/CustomTaskStore';
 import Workflow from '../FlowChart/FlowChart';
+import { ActionNodeType } from '../../stores/TaskFlowChartStore';
 
 
 type CustomTaskProps = {
@@ -88,12 +89,9 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                 </div>
                             </SplitPane>
                             <div className='divActions'>
-                                <Row type='flex' className='divActionItem'>
-                                    <Col><label>初始化相关：</label></Col>
+                                <Row type='flex' className='divActionItem' style={{marginTop:'5px'}}>
+                                    <Col><label>初始：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(true)}>初始化</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(false)}>预设</Button></Col>
-
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickRender()}>重排</Button></Col>
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>得到起始结点：</label></Col>
@@ -102,11 +100,26 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>追加节点：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode()}>追加节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode()}>新增节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Loop)}>新增循环</Button></Col>
+                                    
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Navigate,this.props.customTaskStore.currKey)}>为循环追加打开网页</Button></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Condition,this.props.customTaskStore.currKey)}>继续追加一个条件节点</Button></Col>
+                                    
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Condition,'')}>新增一个条件节点</Button></Col>
+                                </Row>
+
+                                <Row type='flex' className='divActionItem' style={{marginTop:'10px'}}>
+                                    <Col><label>预设流程图：</label></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(false)}>预设</Button></Col>
+                                </Row>
+                                <Row type='flex' className='divActionItem'>
+                                    <Col><label>追加节点：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("cond1")}>追加到分支1</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("cond2")}>追加到分支2</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("loop")}>追加到循环</Button></Col>
                                 </Row>
+
                                 <Row type='flex' className='divActionItem'>
                                      <Col><label>删除节点：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("node1")}>删除节点</Button></Col>
@@ -114,6 +127,7 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("cond")}>删除节点 条件</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("test")}>删除测试节点</Button></Col>
                                 </Row>
+                               
                             </div>
                         </SplitPane>
                     </Row>
