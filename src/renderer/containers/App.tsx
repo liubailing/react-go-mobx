@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Provider, inject } from 'mobx-react';
+import { Provider } from 'mobx-react';
 import './App.less';
 import CustTask from '../components/CustomTask/CustomTask'
 import { CustomTaskStore } from '../stores/CustomTask/CustomTaskStore'

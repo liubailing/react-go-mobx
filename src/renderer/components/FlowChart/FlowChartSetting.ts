@@ -1,4 +1,4 @@
-import go, { Diagram } from 'gojs';
+import { Diagram } from 'gojs';
 import { BaseNodeModel, DiagramModel, LinkModel } from 'react-gojs';
 
 
@@ -175,8 +175,8 @@ export const DiagramSetting = {
     groupTip: '将要执行的流程拖放在此处',
     groupTipFont: '14px Sans-Serif',
     moveNode: true,
-    moveLoop: false,
-    moveCond: false,
+    moveLoop: true,
+    moveCond: true,
     moveCondBranch: false,
     renameable: false,
     padding: 2,
@@ -199,7 +199,7 @@ export const DiagramSetting = {
     test: true
 };
 
-const isGroupArr: FCNodeType[] = [FCNodeType.Condition, FCNodeType.Loop];
+//const isGroupArr: FCNodeType[] = [FCNodeType.Condition, FCNodeType.Loop];
 
 /**
  * store 管理数据

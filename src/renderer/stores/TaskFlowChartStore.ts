@@ -1,8 +1,8 @@
-import { observable, action,toJS } from "mobx";
+import { observable, action } from "mobx";
 import go, { Diagram } from 'gojs';
 import { DiagramModel } from 'react-gojs';
 
-import { DiagramSetting, DiagramState, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, DragNodeEvent, NodeEvent, FCNodeType, FcNode } from '../components/FlowChart/FlowChartSetting';
+import { DiagramSetting,  FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, DragNodeEvent, NodeEvent, FCNodeType, FcNode } from '../components/FlowChart/FlowChartSetting';
 
 
 const guideNodeKey = ['Begin', 'End']
@@ -107,6 +107,8 @@ export interface ITaskFlowChartStore {
      * 删除某一节点
      */
     deleteNodeByKey(key: string): void;
+
+    render(): void;
 }
 
 /**
@@ -170,11 +172,38 @@ export class TaskFlowChart {
     }
 
 
+  
+
     @action
     onDragEndFCNodeHandler = (): void => {
         this.linkHightlight = false;
         this.resetHightlightState()
     }
+
+
+    @action
+    onDragStartNodeHandler = (): void => {       
+        let m = { ...this.model };       
+        m.linkDataArray.map(x => {
+            if(x.from==this.currKey || x.to == this.currKey){
+                x.opacity = 0;
+            }
+            else x.opacity = 1;
+            return x ;
+        });
+        this.model = m;
+
+        this.linkHightlight = true;
+    }
+
+    @action
+    onDragEndNodeHandler = (): void => {
+        this.linkHightlight = false;
+        this.resetHightlightState()
+    }
+
+
+
 
 
     /**
@@ -339,19 +368,25 @@ export class TaskFlowChart {
 
         if (ev.toLink.from === this.currKey || ev.toLink.to === this.currKey) return;
 
-        // 1、修改节点分组
-        this.model.nodeDataArray.map(x => {
-            if (x.key === this.currKey) {
-                x.group = ev.toLink!.group;
-            }
-        })
+        
 
+        // 1、修改节点分组
+        for (let index = 0; index <  this.model.nodeDataArray.length; index++) {
+            const element =  this.model.nodeDataArray[index];           
+            if (element.key === this.currKey) {
+                 //1、1 条件分支不可拖动
+                if(element.category && element.category === DiagramCategory.ConditionSwitch)
+                    return;
+                this.model.nodeDataArray[index].group = ev.toLink!.group;
+                break;
+            }
+        }
 
 
         // 2、被压的线要移除(过滤掉被压的线条)
         let fLineInd = -1;
         let tLineInd = -1;
-        let rmoveLineIndex = -1;
+        // let rmoveLineIndex = -1;
         let links: FCLinkModel[] = []
 
         // let fLine: FCLinkModel;        
@@ -362,7 +397,7 @@ export class TaskFlowChart {
             } else if (x.from === this.currKey) {
                 tLineInd = ind;
             } else if (x.from === ev.toLink!.from && x.to === ev.toLink!.to) {
-                rmoveLineIndex = ind;
+                // rmoveLineIndex = ind;
             } else {
                 links.push(x);
             }
@@ -680,7 +715,7 @@ export class TaskFlowChart {
         return cate;
     }
 
-    getOneNode = (wfType: FCNodeType, payload: string, group: string = '', isGroup: boolean = false, isCond: boolean = false): FCNodeModel => {
+    getOneNode = (wfType: FCNodeType, payload: string, group: string = '', isGroup: boolean = false): FCNodeModel => {
 
         return {
             key: this.getRandomKey(),
@@ -821,7 +856,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * @param selected 
      */
     @action
-    appendNode(type: string, data?: any, parent?: string, selected?: boolean): string {
+    appendNode(type: string, _data?: any, parent?: string, _selected?: boolean): string {
 
         //let node = this.store.model.nodeDataArray.find(x => x.key === parent);
        
@@ -906,83 +941,83 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         return '';
     }
 
-    /**
-     * 得到第一条线
-     */
-    private getFirstLink = (group: string): FCLinkModel | undefined => {
-        //找到组内所有的点和线
-        let links: FCLinkModel[] = [];
-        let forms: string[] = [];
-        let tos: string[] = [];
-        this.store.model.linkDataArray.map(x => {
-            if (x.group === group) {
-                links.push(x);
-                if (!guideNodeKey.includes(x.from) && !guideNodeKey.includes(x.to)) {
-                    forms.push(x.from);
-                    tos.push(x.to);
-                }
-            }
-        });
+    // /**
+    //  * 得到第一条线
+    //  */
+    // private _getFirstLink = (group: string): FCLinkModel | undefined => {
+    //     //找到组内所有的点和线
+    //     let links: FCLinkModel[] = [];
+    //     let forms: string[] = [];
+    //     let tos: string[] = [];
+    //     this.store.model.linkDataArray.map(x => {
+    //         if (x.group === group) {
+    //             links.push(x);
+    //             if (!guideNodeKey.includes(x.from) && !guideNodeKey.includes(x.to)) {
+    //                 forms.push(x.from);
+    //                 tos.push(x.to);
+    //             }
+    //         }
+    //     });
 
-        // 找到起始线条              
-        let f: string = '';
-        for (let i = 0; i < forms.length; i++) {
-            if (!tos.includes(forms[i])) {
-                f = forms[i];
-                break;
-            }
-        }
-        if (!!f) {
-            for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
-                const element = this.store.model.linkDataArray[index];
-                if (f === element.from) {
-                    return element;
-                    break;
-                }
+    //     // 找到起始线条              
+    //     let f: string = '';
+    //     for (let i = 0; i < forms.length; i++) {
+    //         if (!tos.includes(forms[i])) {
+    //             f = forms[i];
+    //             break;
+    //         }
+    //     }
+    //     if (!!f) {
+    //         for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
+    //             const element = this.store.model.linkDataArray[index];
+    //             if (f === element.from) {
+    //                 return element;
+    //                 break;
+    //             }
 
-            }
-        }
-        return undefined;
-    }
+    //         }
+    //     }
+    //     return undefined;
+    // }
 
-    /**
-     * 得到最后条线
-     */
-    private getLastLink = (group: string): FCLinkModel | undefined => {
-        //找到组内所有的点和线
-        let links: FCLinkModel[] = [];
-        let forms: string[] = [];
-        let tos: string[] = [];
-        this.store.model.linkDataArray.map(x => {
-            if (x.group === group) {
-                links.push(x);
-                forms.push(x.from);
-                tos.push(x.to);
-            }
-        });
+    // /**
+    //  * 得到最后条线
+    //  */
+    // private _getLastLink = (group: string): FCLinkModel | undefined => {
+    //     //找到组内所有的点和线
+    //     let links: FCLinkModel[] = [];
+    //     let forms: string[] = [];
+    //     let tos: string[] = [];
+    //     this.store.model.linkDataArray.map(x => {
+    //         if (x.group === group) {
+    //             links.push(x);
+    //             forms.push(x.from);
+    //             tos.push(x.to);
+    //         }
+    //     });
 
-        // 找到起始线条              
-        let t: string = '';
-        for (let i = 0; i < tos.length; i++) {
-            if (!forms.includes(tos[i])) {
-                t = tos[i];
-                break;
-            }
+    //     // 找到起始线条              
+    //     let t: string = '';
+    //     for (let i = 0; i < tos.length; i++) {
+    //         if (!forms.includes(tos[i])) {
+    //             t = tos[i];
+    //             break;
+    //         }
 
-        }
+    //     }
 
-        if (!t) {
-            for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
-                const element = this.store.model.linkDataArray[index];
-                if (t === element.to) {
-                    return element;
-                    break;
-                }
-            }
-        }
-        return undefined;
+    //     if (!t) {
+    //         for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
+    //             const element = this.store.model.linkDataArray[index];
+    //             if (t === element.to) {
+    //                 return element;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return undefined;
 
-    }
+    // }
 
     private getNode = (key: string): ActionNode => {
         if (!!key) {
@@ -1233,6 +1268,14 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
  
 
         this.store.model =  model;
+    }
+
+
+    /**
+     * 
+     */
+    render():void{
+        this.store.diagram.layoutDiagram(true);
     }
 
 }

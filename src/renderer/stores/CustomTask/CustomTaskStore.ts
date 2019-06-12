@@ -1,5 +1,5 @@
 
-import { observable, computed, action, toJS } from "mobx";
+import { observable, action, toJS } from "mobx";
 import TaskFlowChartStore, { TaskFlowChart, ActionNode, ActionNodeType, ITaskFlowChartRuntime, ITaskFlowChartStore } from "../TaskFlowChartStore";
 import { FCNodeType } from "../../components/FlowChart/FlowChartSetting";
 
@@ -12,14 +12,14 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     
     //点击流程图上节点
     @action
-    onClickNodeHandler = async (current: ActionNode): Promise<void> => {
-        let n = this.taskWorkflowStore.getNodeByKey(current.key);
-        console.log('---onClickNodeHandler----',n);
+    onClickNodeHandler = async (_current: ActionNode): Promise<void> => {
+        // let n = this.taskWorkflowStore.getNodeByKey(current.key);
+        //console.log('---onClickNodeHandler----',n);
     }
 
     //删除流程图上的节点
     @action
-    onDeleteNodeHander = async (current: ActionNode): Promise<void> => {
+    onDeleteNodeHander = async (_current: ActionNode): Promise<void> => {
     }
 
 
@@ -36,7 +36,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     /** 操作记录 */
     @observable actionLogs :string[]=[];
 
-    constructor(taskId?: string) {      
+    constructor(_taskId?: string) {      
         this.taskFlowChart = new TaskFlowChart(this);
         this.taskWorkflowStore = new TaskFlowChartStore(this.taskFlowChart);
     }
@@ -56,7 +56,9 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
         console.log('计数', this.curCount);
     }
 
-
+    onClickRender = async (): Promise<void> => {
+        this.taskWorkflowStore.render();
+    }
     //初始化
     onClickInitFlowChart= async (isDefault:boolean): Promise<void> => {
         //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);

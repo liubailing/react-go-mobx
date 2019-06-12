@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
-import { DiagramModel } from 'react-gojs';
-import { DiagramState, FCNodeModel, FCLinkModel, DiagramCategory, DragNodeEvent, FCNodeType,FcNode } from './FlowChartSetting';
+import {DragNodeEvent, FCNodeType,FcNode } from './FlowChartSetting';
 import { observer } from "mobx-react";
-import { action } from 'mobx';
-
 import {TaskFlowChart} from '../../stores/TaskFlowChartStore';
 import './FlowChartNode.less';
 

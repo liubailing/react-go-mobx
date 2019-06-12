@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import go from 'gojs';
-import { DiagramModel } from 'react-gojs';
 import { observer } from "mobx-react";
-import { action } from 'mobx';
-import { colors, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, DragNodeEvent, NodeEvent, FCNodeType } from './FlowChartSetting';
+import { colors, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, NodeEvent } from './FlowChartSetting';
 
 import { TaskFlowChart } from '../../stores/TaskFlowChartStore';
 import WFDiagram from './FlowChartDiagram'

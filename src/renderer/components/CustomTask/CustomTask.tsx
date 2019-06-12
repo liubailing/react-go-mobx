@@ -1,15 +1,11 @@
 import React, { Component } from 'react';
 import { observer } from "mobx-react";
-import { Layout, Row, Col, Select, Button, Collapse } from 'antd';
+import { Layout, Row, Col, Button } from 'antd';
 import './CustomTask.less'
 import { action } from "mobx";
 import SplitPane from 'react-split-pane';
 import { CustomTaskStore } from '../../stores/CustomTask/CustomTaskStore';
 import Workflow from '../FlowChart/FlowChart';
-
-const Option = Select.Option;
-const Panel = Collapse.Panel;
-
 
 
 type CustomTaskProps = {
@@ -52,17 +48,17 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
      * 尺寸变化时重置浏览器位置
      */
     @action
-    private onWindowResize = async (): Promise<void> => {
-        //console.log()
-        //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
-    }
+    // private onWindowResize = async (): Promise<void> => {
+    //     //console.log()
+    //     //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
+    // }
 
     /**
      * 尺寸变化时重置浏览器位置
      */
     @action
     private onChangeHorizontal = async (size: any): Promise<void> => {
-        //console.log()
+        console.log(size)
         //this.props.customTaskStore.setBrowserBounds(this.browserBounds);
     }
 
@@ -96,6 +92,8 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                     <Col><label>初始化相关：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(true)}>初始化</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(false)}>预设</Button></Col>
+
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickRender()}>重排</Button></Col>
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>得到起始结点：</label></Col>
