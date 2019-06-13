@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { TaskFlowChart } from '../../stores/TaskFlowChartStore';
-import { FCNodeType } from './FlowChartSetting';
+import { FCNodeType } from './FCEntities';
 import FlowChartDroper from './FlowChartDroper';
 import FlowChartNode from './FlowChartNode';
 
@@ -25,10 +25,10 @@ class FlowChart extends Component<FlowChartProps, FlowChartState> {
 
 
     render() {
-        let arr: FCNodeType[] = [];
+        let arr: string[] = [];
         for (const key in FCNodeType) {
             if (FCNodeType.hasOwnProperty(key)) {
-                arr.push(FCNodeType[key] as FCNodeType);
+                arr.push(FCNodeType[key]);
             }
         }
 

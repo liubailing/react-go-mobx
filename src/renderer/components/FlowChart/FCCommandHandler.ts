@@ -9,7 +9,7 @@ import go from 'gojs';
 /**
  * @category Extension
  */
-export class DrawCommandHandler extends go.CommandHandler {
+export class FlowChartCommandHandler extends go.CommandHandler {
   private _arrowKeyBehavior: string = 'move';
   private _pasteOffset: go.Point = new go.Point(10, 10);
   private _lastPasteOffset: go.Point = new go.Point(0, 0);

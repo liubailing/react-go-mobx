@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import go from 'gojs';
 import { observer } from "mobx-react";
-import { colors, FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType, NodeEvent } from './FlowChartSetting';
-
+import { FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, NodeEvent } from './FCEntities';
+import { DiagramColors } from './FCSettings';
 import { TaskFlowChart } from '../../stores/TaskFlowChartStore';
-import WFDiagram from './FlowChartDiagram'
+import FlowChartDiagram from './FlowChartDiagram'
 import './FlowChartDroper.less';
 
 
@@ -22,17 +22,17 @@ export interface WFDroperProps {
 let oldLink: any;
 let oldGroup: any;
 let oldNode: any;
-const groups = [DiagramCategory.LoopGroup, DiagramCategory.ConditionGroup, DiagramCategory.ConditionSwitch];
+const groups = [FCDiagramType.LoopGroup, FCDiagramType.ConditionGroup, FCDiagramType.ConditionSwitch];
 
 const ClearDragerWithout = (str: string) => {
     if (str !== 'l' && oldLink instanceof go.Link) {
         var node = (oldLink as any).part;
-        if (node && node.category == DiagramCategory.WFLink && node.diagram) {
+        if (node && node.category == FCDiagramType.WFLink && node.diagram) {
             node.diagram.startTransaction('Change color');
 
             let btn = node.findObject('btn_add');
             if (btn) {
-                btn.fill = colors.link_icon_bg;
+                btn.fill =DiagramColors.link_icon_bg;
             }
             node.diagram.commitTransaction('Change color');
         }
@@ -45,13 +45,13 @@ const ClearDragerWithout = (str: string) => {
             // node.diagram.startTransaction("Change color");
 
             // let shape = node.findObject("group_Body");
-            // if (shape)  shape.fill = colors.group_bg;
+            // if (shape)  shape.fill =DiagramColors.group_bg;
 
             // let top = node.findObject("group_Top");
-            // if (top) top.background = colors.group_bg;
+            // if (top) top.background =DiagramColors.group_bg;
 
             // let title = node.findObject("group_Title");
-            // if (title) title.stroke = colors.group_font;
+            // if (title) title.stroke =DiagramColors.group_font;
 
             // node.diagram.commitTransaction("Change color");
 
@@ -61,11 +61,11 @@ const ClearDragerWithout = (str: string) => {
 
     if (str !== 'n' && oldNode instanceof go.Node) {
         let node = (oldNode as any).part;
-        if (node.category == DiagramCategory.FCNode) {
+        if (node.category == FCDiagramType.FCNode) {
             node.diagram.startTransaction('Change color');
 
             let shape = node.findObject('node_Body');
-            if (shape) shape.fill = colors.backgroud;
+            if (shape) shape.fill =DiagramColors.backgroud;
 
             node.diagram.commitTransaction('Change color');
         }
@@ -133,12 +133,12 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                         if (curnode && curnode.part) {
                             if (curnode instanceof go.Link) {
                                 var node = (curnode as any).part;
-                                if (node.category === DiagramCategory.WFLink) {
+                                if (node.category === FCDiagramType.WFLink) {
                                     node.diagram.startTransaction('Highlighted');
 
                                     let btn = node.findObject('btn_add');
                                     if (btn) {
-                                        btn.fill = colors.link_highlight;
+                                        btn.fill =DiagramColors.link_highlight;
                                     }
 
                                     node.diagram.commitTransaction('Highlighted');
@@ -162,12 +162,12 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                                     // var shape = node.findObject("group_Body");
                                     // if (shape === null) return;
 
-                                    // shape.fill = colors.group_highlight;
+                                    // shape.fill =DiagramColors.group_highlight;
                                     // var top = node.findObject("group_Top");
-                                    // if (top) top.background = colors.group_highlight;
+                                    // if (top) top.background =DiagramColors.group_highlight;
 
                                     // var title = node.findObject("group_Title");
-                                    // if (title) title.stroke = colors.group_highlight_font;
+                                    // if (title) title.stroke =DiagramColors.group_highlight_font;
 
                                     // node.diagram.commitTransaction("Change color");
                                     oldGroup = curnode;
@@ -180,11 +180,11 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                                 //     toNode: curnode.part!.data
                                 // });
                                 let node = (curnode as any).part;
-                                if (node.category === DiagramCategory.FCNode) {
+                                if (node.category === FCDiagramType.FCNode) {
                                     node.diagram.startTransaction('Change color');
 
                                     let nbody = node.findObject('node_Body');
-                                    if (nbody) nbody.fill = colors.highlight;
+                                    if (nbody) nbody.fill =DiagramColors.highlight;
 
                                     node.diagram.commitTransaction('Change color');
                                     oldNode = curnode;
@@ -241,7 +241,7 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                     }
                 }}
             >
-                <WFDiagram store={this.props.store} />
+                <FlowChartDiagram store={this.props.store} />
             </div>
         );
     }

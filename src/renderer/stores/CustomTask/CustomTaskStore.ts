@@ -1,7 +1,7 @@
 
 import { observable, action, toJS } from "mobx";
 import TaskFlowChartStore, { TaskFlowChart, ActionNode, ActionNodeType, ITaskFlowChartRuntime, ITaskFlowChartStore } from "../TaskFlowChartStore";
-import { FCNodeType } from "../../components/FlowChart/FlowChartSetting";
+import { FCNodeType,FCNodeExtendsType } from "../../components/FlowChart/FCEntities";
 
 
 /**
@@ -64,17 +64,17 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     onClickInitFlowChart= async (isDefault:boolean): Promise<void> => {
         //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
         let nodes =  [
-            { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
-            { key: 'node1', label: '打开网页', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
-            { key: 'test', label: '测试节点', wfType: FCNodeType.OpenWeb as string, group: '', isGroup: false },
-            { key: 'node456', label: '循环网页', wfType: FCNodeType.OpenWeb as string, group: 'loop', isGroup: false },
+            { key: 'Begin', label: '起始', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
+            { key: 'node1', label: '打开网页', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
+            { key: 'test', label: '测试节点', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
+            { key: 'node456', label: '循环网页', wfType: FCNodeType.Navigate as string, group: 'loop', isGroup: false },
             { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
             { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
-            { key: 'cond1', label: '分支1', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-            { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeType.WFGuideNode  as string, group: 'cond1', isGroup: false },
-            { key: 'cond2', label: '分支2', wfType: FCNodeType.ConditionSwitch as string, group: 'cond', isGroup: true },
-            { key: 'data', label: '提取数据', wfType: FCNodeType.Data as string, group: 'cond2', isGroup: false },
-            { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
+            { key: 'cond1', label: '分支1', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+            { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeExtendsType.WFGuideNode  as string, group: 'cond1', isGroup: false },
+            { key: 'cond2', label: '分支2', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+            { key: 'data', label: '提取数据', wfType: FCNodeType.ExtractData as string, group: 'cond2', isGroup: false },
+            { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
         ];
         let  links = [
             { from: 'Begin', to: 'node1', group: '', isCondition: false },
@@ -115,6 +115,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     onClickAppendNodeByType = async (type: ActionNodeType ,pId?:string): Promise<void> => {
         this.currKey =  this.taskWorkflowStore.appendNode(type,{data:'test.data'},pId);
+
     //    console.log(key);      
         this.logs(`追加key:${this.currKey}`);
     }

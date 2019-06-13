@@ -3,43 +3,38 @@ import go, { Diagram, ToolManager, GraphObject } from 'gojs';
 import { ModelChangeEvent, GojsDiagram, ModelChangeEventType } from 'react-gojs';
 import { observer } from "mobx-react";
 import { action } from 'mobx';
-import { DiagramSetting,  FCNodeModel, FCLinkModel, DiagramCategory, NodeEventType,  NodeEvent,  colors } from './FlowChartSetting';
-
+import {  FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType,  NodeEvent } from './FCEntities';
+import { DiagramSetting, DiagramColors } from './FCSettings';
 import {TaskFlowChart} from '../../stores/TaskFlowChartStore';
 import './FlowChartDiagram.less';
-// import { DrawCommandHandler } from './DrawCommandHandler';
-
-export interface FlowChartDiagramState {
-
-}
+import { FCDiagramDragTool } from './FCDragTool';
 
 export interface FlowChartDiagramProps {
-    store: TaskFlowChart,
-
+    store: TaskFlowChart
 }
 
 let myDiagram: Diagram;
-let linksToAdd: FCLinkModel[] = [];
+// let linksToAdd: FCLinkModel[] = [];
+let divID = `divDiagram${new Date().getTime()}`;
 
 @observer
-class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagramState> {
-    constructor(props: any) {
+class FlowChartDiagram extends Component<FlowChartDiagramProps> {
+    constructor(props: FlowChartDiagramProps) {
         super(props);
         this.state = {
-
         }
 
         this.createDiagram = this.createDiagram.bind(this);
-        //this.onTextEdited = this.onTextEdited.bind(this);
-        //this.onModelChangeHandler = this.onModelChangeHandler.bind(this);
         this.mouseEnterHandler = this.mouseEnterHandler.bind(this);
         this.mouseLeaveHandler = this.mouseLeaveHandler.bind(this);
         this.mouseDropHandler = this.mouseDropHandler.bind(this);
         this.mouseDragEnterHandler = this.mouseDragEnterHandler.bind(this);
         this.mouseDragLeaveHandler = this.mouseDragLeaveHandler.bind(this); 
-        //this.getLinkPlusLineHighlightedopacity  = this.getLinkPlusLineHighlightedopacity.bind(this);
         this.mouseDropOverShowLinkAddHandler = this.mouseDropOverShowLinkAddHandler.bind(this);
         this.mouseDropHiddenLinkAddHandler = this.mouseDropHiddenLinkAddHandler.bind(this);
+        //this.onTextEdited = this.onTextEdited.bind(this);
+        //this.onModelChangeHandler = this.onModelChangeHandler.bind(this);
+        //this.getLinkPlusLineHighlightedopacity  = this.getLinkPlusLineHighlightedopacity.bind(this);
     }
 
     @action
@@ -48,7 +43,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         switch (event.eventType) {
             case ModelChangeEventType.Remove:
                 if (event.nodeData) {
-                    this.props.store.removeNodeHandler({ eType: NodeEventType.Delete, key: event.nodeData.key, newLinks: linksToAdd, modelChanged: event.model })
+                   //this.props.store.removeDiagramNodeHandler({ eType: NodeEventType.Delete, key: event.nodeData.key, newLinks: linksToAdd },event.model)
                 }
                 if (event.linkData) {
                     //dispatch(removeLink(event.linkData));
@@ -58,12 +53,11 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                 break;
         }
     }
-
     
     render() {
         return (
             <GojsDiagram
-                diagramId={'divDiagram'+(new Date().getTime())}
+                diagramId={divID}
                 className="divDiagram"               
                 model={this.props.store.model}
                 createDiagram={this.createDiagram}
@@ -108,8 +102,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         //                     name: 'btn_SubExpander',
         //                     figure: 'TriangleDown',  // default value for isSubGraphExpanded is true
         //                     stroke: "red",
-        //                     fill: colors.group_font,
-        //                     background: colors.group_bg,
+        //                     fill: DiagramColors.group_font,
+        //                     background: DiagramColors.group_bg,
         //                     strokeWidth: 0,
         //                     desiredSize: new go.Size(12, 12)
         //                 },
@@ -154,6 +148,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
         myDiagram = $(go.Diagram, diagramId, {
             'undoManager.isEnabled': true,
+            draggingTool: new FCDiagramDragTool(),
             contentAlignment: go.Spot.TopCenter,
             initialContentAlignment: go.Spot.RightCenter,
             commandHandler:new go.CommandHandler(),
@@ -195,7 +190,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
          */
         const drawLink = () => {
             myDiagram.linkTemplateMap.add(
-                DiagramCategory.WFLink,
+                FCDiagramType.WFLink,
                 $(
                     go.Link,
                     {
@@ -211,7 +206,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                     new go.Binding('location'),
                     $(go.Shape, {
                         name: 'link_Body',
-                        stroke: colors.link,
+                        stroke: DiagramColors.link,
                         strokeWidth: 1
                     }),
 
@@ -220,13 +215,13 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         toArrow: 'Standard',
                         scale: 1.2,
                         strokeWidth: 0,
-                        fill: colors.link
+                        fill: DiagramColors.link
                     }),
                     $(go.Shape, 'Rectangle', {
                         width: DiagramSetting.nodeWith / 2,
                         height: DiagramSetting.layerSpacing + 5,
                         opacity: DiagramSetting.linkOpacity,
-                        fill: colors.link
+                        fill: DiagramColors.link
                     }),
                     $(
                         go.Panel,
@@ -249,17 +244,16 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             name: 'btn_add',
                             width: DiagramSetting.linkIconWidth,
                             height: DiagramSetting.linkIconWidth,
-                            fill: colors.link_icon_bg,
+                            fill: DiagramColors.link_icon_bg,
                             strokeWidth: 0
                         }),
                         $(go.Shape, 'PlusLine', {
                             width: DiagramSetting.linkIconInWidth,
                             height: DiagramSetting.linkIconInWidth,
                             fill: null,
-                            stroke: colors.link_icon,
+                            stroke: DiagramColors.link_icon,
                             strokeWidth: 2
-                        }),
-
+                        })
                         // new go.Binding('fill', 'isHighlighted', this.getLinkPlusLineHighlightedColor).ofObject(), // binding source is Node.isHighlighted
                         // new go.Binding('stroke', 'isHighlighted', this.getLinkPlusLineHighlightedColor).ofObject(), // binding source is Node.isHighlighted
                         // new go.Binding('opacity', 'isHighlighted', this.getLinkPlusLineHighlightedopacity).ofObject() // binding source is Node.isHighlighted
@@ -270,7 +264,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
         // myDiagram.linkSelectionAdornmentTemplate = $(go.Adornment, "Auto",
         //     $(go.Shape, {
-        //         fill: colors.drag_bg,
+        //         fill: DiagramColors.drag_bg,
         //         stroke: null,
         //         strokeWidth: 1,
         //         strokeDashArray: [1, 1]
@@ -287,7 +281,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
          */
         const drawNode = () => {
             myDiagram.nodeTemplateMap.add(
-                DiagramCategory.FCNode,
+                FCDiagramType.FCNode,
                 $(
                     go.Node,
                     'Auto',
@@ -295,12 +289,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
                         movable: DiagramSetting.moveNode,
-                       
-                        selectionChanged: (node: any) => {
-                            //this.props.store.currKey = node.key as string;
-                            // console.log('-----------selectionChanged-----------',node)
-                            this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
-                        },
+                        selectionChanged: this.onselectionChangedHandler,
                         padding: new go.Margin(DiagramSetting.padding, 0, DiagramSetting.padding, 0),
                         minSize: new go.Size(DiagramSetting.nodeWith, DiagramSetting.nodeHeight)
                     },
@@ -310,8 +299,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         {
                             name: 'node_Body',
                             strokeWidth: 1,
-                            stroke: colors.transparent,
-                            fill: colors.backgroud
+                            stroke: DiagramColors.transparent,
+                            fill: DiagramColors.backgroud
                         }
                         //new go.Binding('fill', 'color'),
                         //new go.Binding('fill', 'isHighlighted', this.getHighlightedColor).ofObject() // binding source is Node.isHighlighted
@@ -320,7 +309,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         go.TextBlock,
                         {
                             editable: DiagramSetting.renameable,
-                            stroke: colors.font,
+                            stroke: DiagramColors.font,
                             font: DiagramSetting.font
                             
                         },
@@ -335,7 +324,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         */
         const drawNodeGuide = () => {
             myDiagram.nodeTemplateMap.add(
-                DiagramCategory.WFGuideNode,
+                FCDiagramType.WFGuideNode,
                 $(
                     go.Node,
                     'Auto',
@@ -349,7 +338,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         'RoundedRectangle',
                         {
                             strokeWidth: 0,
-                            fill: colors.transparent
+                            fill: DiagramColors.transparent
                         }
                         //new go.Binding('fill', 'color'),
                         //new go.Binding('fill', 'isHighlighted', this.getHighlightedColor).ofObject() // binding source is Node.isHighlighted
@@ -358,7 +347,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         go.TextBlock,
                         {
                             editable: false,
-                            stroke: colors.group_font,
+                            stroke: DiagramColors.group_font,
                             isMultiline: true,
                             font: DiagramSetting.groupTipFont
                         },
@@ -371,7 +360,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         // 划循环分组
         const drawGroupLoop = () => {
             myDiagram.groupTemplateMap.add(
-                DiagramCategory.LoopGroup,
+                FCDiagramType.LoopGroup,
                 $(
                     go.Group,
                     'Auto',
@@ -395,18 +384,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         // upon expansion, a Diagram Listener will generate contents for the group
                         isSubGraphExpanded: true,
                         // when a group is expanded, if it contains no parts, generate a subGraph inside of it
-                        selectionChanged: (node: any) => {
-                            //this.props.store.currKey = node.key as string;
-                            this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
-                        },
+                        selectionChanged: this.onselectionChangedHandler,
                         //subGraphExpandedChanged: function (group) { }
                     },
 
                     $(go.Shape, 'RoundedRectangle', {
                         name: 'group_Body',
-                        stroke: colors.group_border,
+                        stroke: DiagramColors.group_border,
                         strokeWidth: 0.1,
-                        fill: colors.group_bg
+                        fill: DiagramColors.group_bg
                     }),
                     $(
                         go.Panel,
@@ -420,7 +406,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             {
                                 name: 'group_Top',
                                 padding: 5,
-                                background: colors.group_bg
+                                background: DiagramColors.group_bg
                             },
                             $('SubGraphExpanderButton', 'btn_expand', {
                                 alignment: go.Spot.Center
@@ -432,7 +418,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                                     name: 'group_Title',
                                     font: DiagramSetting.groupFont,
                                     editable: DiagramSetting.renameable,
-                                    stroke: colors.group_font,
+                                    stroke: DiagramColors.group_font,
                                     margin: new go.Margin(0, 0, 0, 10)
                                 },
                                 new go.Binding('text', 'label').makeTwoWay()
@@ -440,7 +426,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         ),
                         // create a placeholder to represent the area where the contents of the group are
                         $(go.Placeholder, {
-                            background: colors.group_panel_bg,
+                            background: DiagramColors.group_panel_bg,
                             padding: new go.Margin(10, 15),
                             alignment: go.Spot.TopLeft,
                             minSize: new go.Size(DiagramSetting.ConditionWidth, DiagramSetting.groupHeight)
@@ -453,7 +439,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         //条件线
         const drawLinkGuide = () => {
             myDiagram.linkTemplateMap.add(
-                DiagramCategory.WFGuideLink,
+                FCDiagramType.WFGuideLink,
                 $(
                     go.Link,
                     {
@@ -495,7 +481,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         // 条件分组
         const drawGroupCond = () => {
             myDiagram.groupTemplateMap.add(
-                DiagramCategory.ConditionGroup,
+                FCDiagramType.ConditionGroup,
                 $(
                     go.Group,
                     'Auto',
@@ -513,17 +499,14 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         mouseLeave: this.mouseLeaveHandler,
 
                    
-                        selectionChanged: (node: any) => {
-                            //this.props.store.currKey = node.key as string;
-                            this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
-                        },
+                        selectionChanged: this.onselectionChangedHandler,
                         // subGraphExpandedChanged: function (group) { }
                     },
                     $(go.Shape, 'RoundedRectangle', {
                         name: 'group_Body',
-                        stroke: colors.group_border,
+                        stroke: DiagramColors.group_border,
                         strokeWidth: 1,
-                        fill: colors.group_bg
+                        fill: DiagramColors.group_bg
                     }),
                     $(
                         go.Panel,
@@ -537,7 +520,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             {
                                 name: 'group_Top',
                                 padding: 5,
-                                background: colors.group_bg
+                                background: DiagramColors.group_bg
                             },
                             $('SubGraphExpanderButton', {
                                 alignment: go.Spot.Center
@@ -548,7 +531,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                                     name: 'group_Title',
                                     font: DiagramSetting.groupFont,
                                     editable: DiagramSetting.renameable,
-                                    stroke: colors.group_font,
+                                    stroke: DiagramColors.group_font,
                                     margin: new go.Margin(0, 0, 0, 10)
                                 },
                                 new go.Binding('text', 'label').makeTwoWay()
@@ -556,7 +539,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         ),
                         // create a placeholder to represent the area where the contents of the group are
                         $(go.Placeholder, {
-                            background: colors.group_panel_bg,
+                            background: DiagramColors.group_panel_bg,
                             padding: new go.Margin(10, 15),
                             minSize: new go.Size(DiagramSetting.ConditionWidth, DiagramSetting.groupHeight)
                         })
@@ -568,7 +551,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         // 条件分组
         const drawGroupCond1 = () => {
             myDiagram.groupTemplateMap.add(
-                DiagramCategory.ConditionGroup,
+                FCDiagramType.ConditionGroup,
                 $(
                     go.Group,
                     'Auto',
@@ -586,10 +569,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         mouseDrop:this.mouseDropHiddenLinkAddHandler,
 
                         movable: DiagramSetting.moveCond,
-                        selectionChanged: (node: any) => {
-                            //this.props.store.currKey = node.key as string;
-                            this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
-                        },
+                        selectionChanged: this.onselectionChangedHandler,
                         // the group begins unexpanded;
                         // upon expansion, a Diagram Listener will generate contents for the group
                         isSubGraphExpanded: true,
@@ -599,9 +579,9 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
                     $(go.Shape, 'RoundedRectangle', {
                         name: 'group_Body',
-                        stroke: colors.group_border,
+                        stroke: DiagramColors.group_border,
                         strokeWidth: 0.1,
-                        fill: colors.group_bg
+                        fill: DiagramColors.group_bg
                     }),
                     $(
                         go.Panel,
@@ -615,7 +595,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             {
                                 name: 'group_Top',
                                 padding: 5,
-                                background: colors.group_bg
+                                background: DiagramColors.group_bg
                             },
                             $('SubGraphExpanderButton', {
                                 alignment: go.Spot.Center
@@ -626,7 +606,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                                     name: 'group_Title',
                                     font: DiagramSetting.groupFont,
                                     editable: DiagramSetting.renameable,
-                                    stroke: colors.group_font,
+                                    stroke: DiagramColors.group_font,
                                     margin: new go.Margin(0, 0, 0, 10)
                                 },
                                 new go.Binding('text', 'label').makeTwoWay()
@@ -634,7 +614,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         ),
                         // create a placeholder to represent the area where the contents of the group are
                         $(go.Placeholder, {
-                            background: colors.group_panel_bg,
+                            background: DiagramColors.group_panel_bg,
                             padding: new go.Margin(10, 15),
                             alignment: go.Spot.TopLeft,
                             minSize: new go.Size(DiagramSetting.ConditionWidth, DiagramSetting.groupHeight)
@@ -647,7 +627,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         //条件分支
         const drawGroupCondBranch = () => {
             myDiagram.groupTemplateMap.add(
-                DiagramCategory.ConditionSwitch,
+                FCDiagramType.ConditionSwitch,
                 $(
                     go.Group,
                     'Auto',
@@ -664,29 +644,20 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         // selectionObjectName: 'HEADER',
                         fromLinkable: false,
                         toLinkable: false,
-
+                        movable: DiagramSetting.moveCondBranch,
                         mouseLeave: this.mouseLeaveHandler,
                         mouseEnter: this.mouseEnterHandler,
 
                         mouseDragEnter:this.mouseDropOverShowLinkAddHandler,
                         mouseDrop:this.mouseDropHiddenLinkAddHandler,
 
-                        
-                        // mouseDrop: this.mouseDropHandler,
-
-                        selectionChanged: (node: any) => {
-                            //this.props.store.currKey = node.key as string;
-                            this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
-                        },
-
-                        movable: DiagramSetting.moveCondBranch,
+                        selectionChanged:this.onselectionChangedHandler,
 
                         // the group begins unexpanded;
                         // upon expansion, a Diagram Listener will generate contents for the group
                         isSubGraphExpanded: true,
                         // when a group is expanded, if it contains no parts, generate a subGraph inside of it
                         subGraphExpandedChanged: function (group: any) {
-
                             if (group instanceof go.Adornment) group = group.adornedPart;
                             const cmd = myDiagram.commandHandler;
                             const lspot = group.part.findObject('left_Spot');
@@ -707,9 +678,9 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                     new go.Binding('height', 'height').makeTwoWay(),
                     $(go.Shape, 'RoundedRectangle', {
                         name: 'group_Body',
-                        stroke: colors.group_border,
+                        stroke: DiagramColors.group_border,
                         strokeWidth: 0.1,
-                        fill: colors.group_bg
+                        fill: DiagramColors.group_bg
                     }),
                     $(
                         go.Panel,
@@ -723,11 +694,11 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                             {
                                 name: 'group_Top',
                                 padding: 5,
-                                background: colors.group_bg
+                                background: DiagramColors.group_bg
                             },
                             $('SubGraphExpanderButton', {
                                 alignment: go.Spot.Center,
-                                background: colors.transparent
+                                background: DiagramColors.transparent
                             }),
                             $(
                                 go.TextBlock,
@@ -735,7 +706,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                                     name: 'group_Title',
                                     font: DiagramSetting.groupFont,
                                     editable: DiagramSetting.renameable,
-                                    stroke: colors.group_font,
+                                    stroke: DiagramColors.group_font,
                                     margin: new go.Margin(0, 0, 0, 10)
                                 },
                                 new go.Binding('text', 'label').makeTwoWay()
@@ -743,7 +714,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         ),
                         // create a placeholder to represent the area where the contents of the group are
                         $(go.Placeholder, {
-                            background: colors.group_panel_bg,
+                            background: DiagramColors.group_panel_bg,
                             padding: new go.Margin(10, 15),
                             alignment: go.Spot.TopLeft,
                             height: 100,
@@ -773,15 +744,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         $(go.Shape, 'Circle', {
                             width: DiagramSetting.iconWidth,
                             height: DiagramSetting.iconWidth,
-                            fill: colors.icon_bg,
-                            stroke: colors.icon_bg,
+                            fill: DiagramColors.icon_bg,
+                            stroke: DiagramColors.icon_bg,
                             strokeWidth: 1
                         }),
                         $(go.Shape, 'PlusLine', {
                             width: DiagramSetting.iconInWidth,
                             height: DiagramSetting.iconInWidth,
                             fill: null,
-                            stroke: colors.icon,
+                            stroke: DiagramColors.icon,
                             strokeWidth: 1
                         })
                     ),
@@ -806,15 +777,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         $(go.Shape, 'Circle', {
                             width: DiagramSetting.iconWidth,
                             height: DiagramSetting.iconWidth,
-                            fill: colors.icon_bg,
-                            stroke: colors.icon_bg,
+                            fill: DiagramColors.icon_bg,
+                            stroke: DiagramColors.icon_bg,
                             strokeWidth: 1
                         }),
                         $(go.Shape, 'PlusLine', {
                             width: DiagramSetting.iconInWidth,
                             height: DiagramSetting.iconInWidth,
                             fill: null,
-                            stroke: colors.icon,
+                            stroke: DiagramColors.icon,
                             strokeWidth: 1
                         })
                     )
@@ -827,7 +798,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
              * 起始点
              */
             myDiagram.nodeTemplateMap.add(
-                DiagramCategory.Start,
+                FCDiagramType.Start,
                 $(
                     go.Node,
                     'Panel',
@@ -836,9 +807,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         padding: new go.Margin(5),
                         movable: false,
                         deletable: false,
-                        // mouseDragEnter: this.mouseDragEnterHandler,
-                        // mouseDragLeave: this.mouseDragLeaveHandler,
-                        // mouseDrop: this.mouseDropHandler
+                        selectable:false
                     },
                     $(
                         go.Panel,
@@ -846,13 +815,13 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         $(go.Shape, 'Circle', {
                             minSize: new go.Size(DiagramSetting.startWidth, DiagramSetting.startWidth),
                             fill: null,
-                            stroke: colors.start,
+                            stroke: DiagramColors.start,
                             strokeWidth: 1
                         }),
                         $(go.Shape, 'TriangleRight', {
                             width: DiagramSetting.startInWidth,
                             height: DiagramSetting.startInWidth,
-                            fill: colors.start,
+                            fill: DiagramColors.start,
                             strokeWidth: 0,
                             margin: new go.Margin(0, 0, 0, 2)
                         })
@@ -864,14 +833,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
              * 结束点
              */
             myDiagram.nodeTemplateMap.add(
-                DiagramCategory.End,
+                FCDiagramType.End,
                 $(
                     go.Node,
                     'Panel',
                     {
                         padding: new go.Margin(5, 2),
                         movable: false,
-                        deletable: false
+                        deletable: false,
+                        selectable:false
                     },
                     $(
                         go.Panel,
@@ -879,13 +849,13 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
                         $(go.Shape, 'Circle', {
                             minSize: new go.Size(DiagramSetting.endWidth, DiagramSetting.endWidth),
                             fill: null,
-                            stroke: colors.end,
+                            stroke: DiagramColors.end,
                             strokeWidth: 1
                         }),
                         $(go.Shape, 'Rectangle', {
                             width: DiagramSetting.endInWidth,
                             height: DiagramSetting.endInWidth,
-                            fill: colors.end,
+                            fill: DiagramColors.end,
                             strokeWidth: 0
                         })
                     )
@@ -909,33 +879,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
         myDiagram.commandHandler.doKeyDown = function () {
             var e = myDiagram.lastInput;
-            linksToAdd = [];
+            //linksToAdd = [];
             // The meta (Command) key substitutes for "control" for Mac commands
             var control = e.control || e.meta;
             var key = e.key;
             // Quit on any undo/redo key combination:
             if (control && (key === 'Z' || key === 'Y')) return;
             //将要删除
-            if (key === 'Del' && _this.props.store.currKey) {
-                // 这个节点 指向的
-                const indOut = _this.props.store.model.linkDataArray.findIndex(link => link.from === _this.props.store.currKey);
-                // 指向这个节点
-                const indIn = _this.props.store.model.linkDataArray.findIndex(link => link.to === _this.props.store.currKey);
-
-                //节点  中间节点 、 起始节点 、 终止节点
-                if (indIn > -1 && indOut > -1) {
-                    // 1、 中间节点
-                    let f = _this.props.store.model.linkDataArray[indIn];
-                    let t = _this.props.store.model.linkDataArray[indOut];
-                    linksToAdd.push({
-                        from: f.from,
-                        to: t.to,
-                        group: f.group,
-                        category: f.category,
-                        isCondition: false
-                    });
-                }
-                _this.props.store.currKey = "";
+            if (key === 'Del' && _this.props.store.currKey) {              
+                _this.props.store.onRemoveSelectedNodeHandler();              
             }
             //call base method with no arguments (default functionality)
             go.CommandHandler.prototype.doKeyDown.call(this);
@@ -987,6 +939,14 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         return myDiagram;
     }
 
+    /**
+     * 点击某一个节点
+     * @param node
+     */
+    onselectionChangedHandler = (node: any) => {
+        console.log('onClickHandler',node)
+        this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
+    }
 
     /**
    * 鼠标移上
@@ -1001,29 +961,29 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
             node.diagram.startTransaction('Change color');
 
             let lbody = node.findObject('link_Body');
-            if (lbody) lbody.stroke = colors.link_highlight;
+            if (lbody) lbody.stroke = DiagramColors.link_highlight;
 
             let linkArr = node.findObject('link_Arr');
-            if (linkArr) linkArr.fill = colors.link_highlight;
+            if (linkArr) linkArr.fill = DiagramColors.link_highlight;
 
             let nbody = node.findObject('node_Body');
-            if (nbody) nbody.fill = colors.highlight;
+            if (nbody) nbody.fill = DiagramColors.highlight;
 
             let shape = node.findObject('group_Body');
-            if (shape) shape.fill = colors.group_highlight;
+            if (shape) shape.fill = DiagramColors.group_highlight;
 
             let top = node.findObject('group_Top');
-            if (top) top.background = colors.group_highlight;
+            if (top) top.background = DiagramColors.group_highlight;
 
             let title = node.findObject('group_Title');
-            if (title) title.stroke = colors.group_highlight_font;
+            if (title) title.stroke = DiagramColors.group_highlight_font;
 
 
             let btn_exp = node.findObject('btn_SubExpander');
             if (btn_exp) {
-                btn_exp.fill = colors.group_highlight_font;
-                btn_exp.background = colors.group_highlight;
-                btn_exp.stroke = colors.group_highlight;
+                btn_exp.fill = DiagramColors.group_highlight_font;
+                btn_exp.background = DiagramColors.group_highlight;
+                btn_exp.stroke = DiagramColors.group_highlight;
                 btn_exp.strokeWidth = 0;
             }
 
@@ -1031,7 +991,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
 
             let btn = node.findObject('btn_add');
             if (btn) {
-                btn.fill = colors.link_highlight;
+                btn.fill = DiagramColors.link_highlight;
             }
 
 
@@ -1059,35 +1019,35 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
             node.diagram.startTransaction('Change color');
 
             let lbody = node.findObject('link_Body');
-            if (lbody) lbody.stroke = colors.link;
+            if (lbody) lbody.stroke = DiagramColors.link;
 
             let linkArr = node.findObject('link_Arr');
-            if (linkArr) linkArr.fill = colors.link;
+            if (linkArr) linkArr.fill = DiagramColors.link;
 
             let nbody = node.findObject('node_Body');
-            if (nbody) nbody.fill = colors.backgroud;
+            if (nbody) nbody.fill = DiagramColors.backgroud;
 
             let shape = node.findObject('group_Body');
-            if (shape) shape.fill = colors.group_bg;
+            if (shape) shape.fill = DiagramColors.group_bg;
 
             let top = node.findObject('group_Top');
-            if (top) top.background = colors.group_bg;
+            if (top) top.background = DiagramColors.group_bg;
 
             let title = node.findObject('group_Title');
-            if (title) title.stroke = colors.group_font;
+            if (title) title.stroke = DiagramColors.group_font;
 
 
             let btn_exp = node.findObject('btn_SubExpander');
             if (btn_exp) {
-                btn_exp.fill = colors.group_font;
-                btn_exp.background = colors.group_bg;
+                btn_exp.fill = DiagramColors.group_font;
+                btn_exp.background = DiagramColors.group_bg;
                 btn_exp.strokeWidth = 0;
             }
 
 
             let btn = node.findObject('btn_add');
             if (btn) {
-                btn.fill = colors.link;
+                btn.fill = DiagramColors.link;
             }
 
             let lspot = node.findObject('left_Spot');
@@ -1120,15 +1080,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
            if (linkAdd) linkAdd.opacity =1;
 
            let lbody = node.findObject('link_Body');
-           if (lbody) lbody.stroke = colors.link_highlight;
+           if (lbody) lbody.stroke = DiagramColors.link_highlight;
 
            let linkArr = node.findObject('link_Arr');
-           if (linkArr) linkArr.fill = colors.link_highlight;
+           if (linkArr) linkArr.fill = DiagramColors.link_highlight;
 
            
            let btn = node.findObject('btn_add');
            if (btn) {
-               btn.fill = colors.link_highlight;
+               btn.fill = DiagramColors.link_highlight;
            }
 
            node.diagram.commitTransaction('Change color');
@@ -1151,15 +1111,15 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
             if (linkAdd) linkAdd.opacity =1;
 
             let lbody = node.findObject('link_Body');
-            if (lbody) lbody.stroke = colors.link;
+            if (lbody) lbody.stroke = DiagramColors.link;
 
             let linkArr = node.findObject('link_Arr');
-            if (linkArr) linkArr.fill = colors.link;
+            if (linkArr) linkArr.fill = DiagramColors.link;
 
             
             let btn = node.findObject('btn_add');
             if (btn) {
-                btn.fill = colors.link;
+                btn.fill = DiagramColors.link;
             }
 
             node.diagram.commitTransaction('Change color');
@@ -1189,7 +1149,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps, FlowChartDiagram
         //     if (linkAdd) linkAdd.opacity =0;
 
         //     let lbody = node.findObject('link_Body');
-        //     if (lbody) lbody.stroke = colors.link;
+        //     if (lbody) lbody.stroke = DiagramColors.link;
         //     node.diagram.commitTransaction('Change color');
         // }
     }
