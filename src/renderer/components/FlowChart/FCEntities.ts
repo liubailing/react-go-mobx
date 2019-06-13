@@ -158,15 +158,15 @@ export interface FCLinkModel extends LinkModel {
 }
 
 
-/**
- * 左侧拖拽相关
- */
-export interface DragNodeEvent {
-    type: FCNodeType;
-    name: string;
-    // tslint:disable-next-line: no-any
-    //event: any;
-}
+// /**
+//  * 左侧拖拽相关
+//  */
+// export interface DragNodeEvent {
+//     type: FCNodeType;
+//     name: string;
+//     // tslint:disable-next-line: no-any
+//     //event: any;
+// }
 
 
 /**

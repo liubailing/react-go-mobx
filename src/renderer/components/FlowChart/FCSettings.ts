@@ -2,6 +2,8 @@
 export const DiagramColors = {
     start: '#69BE70',
     end: '#E06969',
+    diagram_bg:'#fff',
+    diagram_drag_bg:'#eee',
 
     font: '#fff',
     border: '#6383BC',

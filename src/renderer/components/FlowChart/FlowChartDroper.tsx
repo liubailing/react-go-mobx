@@ -32,7 +32,7 @@ const ClearDragerWithout = (str: string) => {
 
             let btn = node.findObject('btn_add');
             if (btn) {
-                btn.fill =DiagramColors.link_icon_bg;
+                btn.fill = DiagramColors.link_icon_bg;
             }
             node.diagram.commitTransaction('Change color');
         }
@@ -65,7 +65,7 @@ const ClearDragerWithout = (str: string) => {
             node.diagram.startTransaction('Change color');
 
             let shape = node.findObject('node_Body');
-            if (shape) shape.fill =DiagramColors.backgroud;
+            if (shape) shape.fill = DiagramColors.backgroud;
 
             node.diagram.commitTransaction('Change color');
         }
@@ -89,30 +89,40 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
         return (
             <div
                 className="divFCDiagram"
-                style={{ backgroundColor: '#fff' }}
+                style={{ backgroundColor: DiagramColors.diagram_bg }}
                 onDragEnter={(event: any) => {
-                    if (!this.props.store.drager) event.preventDefault();
-                    event.target.style.backgroundColor = '#ddd';
+
+                    if (!this.props.store.draggingNodeType) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    event.target.style.backgroundColor = DiagramColors.diagram_drag_bg;
                     console.log('-------------------onDragEnter ----------------');
                 }}
-                onDragLeave={(e: any) => {
-                    e.target.style.backgroundColor = '';
+                onDragLeave={(event: any) => {
+                    if (!this.props.store.draggingNodeType) {
+                        event.preventDefault();
+                        return;
+                    }
+                    event.target.style.backgroundColor = DiagramColors.diagram_bg;
                     console.log('-------------------onDragLeave ----------------');
                 }}
-                onMouseMove={(event: any) => {
-                    event.preventDefault();
-                    if (!this.props.store.drager) return;
-                    console.log('-------------------onMouseMove ----------------');
-                }}
+                // onMouseMove={(event: any) => {
+                //     event.preventDefault();
+
+                //     if (!this.props.store.draggingNodeType) return;
+                //     console.log('-------------------onMouseMove ----------------');
+                // }}
                 onDragOver={(event: any) => {
                     event.preventDefault();
-                    if (!this.props.store.drager) return;
+                    if (!this.props.store.draggingNodeType) {
+                        return;
+                    }
 
-                    event.target.style.backgroundColor = '';
+                    event.target.style.backgroundColor = DiagramColors.diagram_drag_bg;
                     const myDiagram = this.props.store.diagram;
                     let pixelratio = myDiagram.computePixelRatio();
-                    // prevent default action
-                    // (open as link for some elements in some browsers)
 
                     // Dragging onto a Diagram
                     if (event && event.clientX) {
@@ -141,44 +151,21 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                                         btn.fill =DiagramColors.link_highlight;
                                     }
 
-                                    node.diagram.commitTransaction('Highlighted');
-                                    // setNodeHighlightHandler({
-                                    //     eType: NodeEventType.HightLightLink,
-                                    //     toLink: curnode.part!.data
-                                    // });
+                                    node.diagram.commitTransaction('Highlighted');                                    
 
                                     oldLink = curnode;
                                     ClearDragerWithout('l');
                                 }
                             } else if (curnode instanceof go.Group) {
-                                // setNodeHighlightHandler({
-                                //     eType: NodeEventType.HightLightGroup,
-                                //     toNode: curnode.part!.data
-                                // });
+
                                 var node = (curnode as any).part;
                                 if (groups.includes(node.category)) {
-                                    // node.diagram.startTransaction("Change color");
 
-                                    // var shape = node.findObject("group_Body");
-                                    // if (shape === null) return;
-
-                                    // shape.fill =DiagramColors.group_highlight;
-                                    // var top = node.findObject("group_Top");
-                                    // if (top) top.background =DiagramColors.group_highlight;
-
-                                    // var title = node.findObject("group_Title");
-                                    // if (title) title.stroke =DiagramColors.group_highlight_font;
-
-                                    // node.diagram.commitTransaction("Change color");
                                     oldGroup = curnode;
                                     ClearDragerWithout('g');
                                 }
                             } else if (curnode instanceof go.Node) {
-                                //console.log('-------------------Group ----------------');
-                                // setNodeHighlightHandler({
-                                //     eType: NodeEventType.HightLightNode,
-                                //     toNode: curnode.part!.data
-                                // });
+                             
                                 let node = (curnode as any).part;
                                 if (node.category === FCDiagramType.FCNode) {
                                     node.diagram.startTransaction('Change color');
@@ -198,7 +185,7 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                 }}
                 onDrop={(event: any) => {
                     event.preventDefault();
-                    if (!this.props.store.drager) return;
+                    if (!this.props.store.draggingNodeType) return;
 
                     event.target.style.backgroundColor = '';
                     const myDiagram = this.props.store.diagram;
