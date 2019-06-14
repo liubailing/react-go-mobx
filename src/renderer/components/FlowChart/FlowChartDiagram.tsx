@@ -313,7 +313,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                             font: DiagramSetting.font
                             
                         },
-                        new go.Binding('text', 'label')
+                        new go.Binding('text', DiagramSetting.showKey?'key':'label')
                     )
                 )
             );
@@ -798,7 +798,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
              * 起始点
              */
             myDiagram.nodeTemplateMap.add(
-                FCDiagramType.Start,
+                FCDiagramType.WFGuideStart,
                 $(
                     go.Node,
                     'Panel',
@@ -833,7 +833,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
              * 结束点
              */
             myDiagram.nodeTemplateMap.add(
-                FCDiagramType.End,
+                FCDiagramType.WFGuideEnd,
                 $(
                     go.Node,
                     'Panel',
@@ -861,6 +861,70 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                     )
                 )
             );
+
+
+            /**
+             * 起始点
+             */
+            myDiagram.nodeTemplateMap.add(
+                FCDiagramType.WFGuideSubOpen,
+                $(
+                    go.Node,
+                    'Panel',
+                    {
+                        margin: new go.Margin(25, 0, 0, 0),
+                        width: DiagramSetting.openWidth,
+                        height: DiagramSetting.openWidth,
+                        movable: false,
+                        deletable: false,
+                        selectable:false
+                    },
+                    $(
+                        go.Panel,
+                        'Auto',
+                        $(go.Shape, 'Circle', {
+                            width: DiagramSetting.openWidth,
+                            height: DiagramSetting.openWidth,
+                            fill: null,
+                            stroke: DiagramColors.start,
+                            strokeWidth: 1
+                        }),
+                    )
+                )
+            );
+
+            
+
+            /**
+             * 起始点
+             */
+            myDiagram.nodeTemplateMap.add(
+                FCDiagramType.WFGuideSubClose,
+                $(
+                    go.Node,
+                    'Panel',
+                    {
+                        margin: new go.Margin(25, 0, 0, 0),
+                        width: DiagramSetting.openWidth,
+                        height: DiagramSetting.openWidth,
+                        movable: false,
+                        deletable: false,
+                        selectable:false
+                    },
+                    $(
+                        go.Panel,
+                        'Auto',
+                        $(go.Shape, 'Circle', {
+                            width: DiagramSetting.openWidth,
+                            height: DiagramSetting.openWidth,
+                            fill: null,
+                            stroke: DiagramColors.start,
+                            strokeWidth: 1
+                        }),
+                    )
+                )
+            );
+
         };
 
         drawNode();
@@ -884,7 +948,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             var control = e.control || e.meta;
             var key = e.key;
             // Quit on any undo/redo key combination:
-            if (control && (key === 'Z' || key === 'Y')) return;
+            if (control && (key === 'Z' || key === 'Y')) {};
             //将要删除
             if (key === 'Del' && _this.props.store.currKey) {              
                 _this.props.store.onRemoveSelectedNodeHandler();              
@@ -1132,26 +1196,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param e
      * @param obj
      */
-    private mouseDropOverShowLinkAddHandler(_e: go.InputEvent): void { 
-        // const ok = myDiagram.commandHandler.addTopLevelParts(myDiagram.selection, true);
-        // if (!ok) myDiagram.currentTool.doCancel();
-        console.log('mouseDropOverShowLinkAddHandler');
-
-        // this.props.store.onDragStartFCNodeHandler({ type: this.props.type, name: this.state.title, event: event } as DragNodeEvent);
+    private mouseDropOverShowLinkAddHandler(_e: go.InputEvent): void {
         this.props.store.onDragStartNodeHandler();
-
-        // console.log("--mouseDragLeaveHandler--",e)
-        // let node = (obj as any).part;
-        // if (node && node.diagram) {
-        //     node.diagram.startTransaction('Change color');
-
-        //     let linkAdd = node.findObject('link_Add');
-        //     if (linkAdd) linkAdd.opacity =0;
-
-        //     let lbody = node.findObject('link_Body');
-        //     if (lbody) lbody.stroke = DiagramColors.link;
-        //     node.diagram.commitTransaction('Change color');
-        // }
     }
 
     /**
@@ -1160,10 +1206,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param obj
      */
     private mouseDropHiddenLinkAddHandler(_e: go.InputEvent): void { 
-        // const ok = myDiagram.commandHandler.addTopLevelParts(myDiagram.selection, true);
-        // if (!ok) myDiagram.currentTool.doCancel();
         this.props.store.onDragEndNodeHandler();
-        //console.log('mouseDropHiddenLinkAddHandler');
     }
 
 
@@ -1173,14 +1216,9 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param obj
      */
     private mouseDropHandler(_e: go.InputEvent, obj: GraphObject): void {
-         //console.log("--mouseDropHandler--",e);
-         //console.log("--mouseDropHandler--", this.props.store.diagram.commandHandler.canUndo()); ;
-         //this.props.store.diagram.commandHandler.undo();
-
-        
             if (obj.part instanceof go.Link) {
-                let ev: NodeEvent = { eType: NodeEventType.Drag2Link, toLink: obj.part!.data as FCLinkModel}
-                this.props.store.moveNodeAfterDropLinkHandler(ev);
+                let ev: NodeEvent = { eType: NodeEventType.DragNode2Link, toLink: obj.part!.data as FCLinkModel}
+                this.props.store.addNodeBy_DragNode2Link_Handler(ev);
                 // console.log('---- mouseDropHandler ------ ',ev);
                 // console.log(' wfDroper  on Link')
             } else if (obj.part instanceof go.Group) {
@@ -1191,47 +1229,9 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                 // console.log('wfDroper Node');
             } else {
             }
-            this.props.store.onDragEndFCNodeHandler();
+            this.props.store.onDragEndFCNodeHandler();        
 
-            //console.log("--layoutDiagram--"); ;
-            //myDiagram.layoutDiagram(true);
-        
-        // myDiagram.redraw();
-        // if (obj && obj.part) {
-        //     if (obj instanceof go.Link) {
-        //         this.props.addNodeByDropLinkHandler({
-        //             eType: NodeEventType.Move2Link,
-        //             toLink: obj.part!.data as WFLinkModel
-        //         });
-        //     } else if (obj instanceof go.Group) {
-        //         this.props.addNodeByDropNodeHandler({
-        //             eType: NodeEventType.Move2Group,
-        //             toNode: obj.part!.data as WFNodeModel
-        //         });
-        //     } else if (obj instanceof go.Node) {
-        //         this.props.addNodeByDropNodeHandler({
-        //             eType: NodeEventType.Move2Node,
-        //             toNode: obj.part!.data as WFNodeModel
-        //         });
-        //     }
-        // }
     }
-
-
-
-    /**
-     * 鼠标移开
-     * @param e
-     * @param obj
-     */
-    //@action
-    // getLinkPlusLineHighlightedopacity = (): number => {
-    //     console.log('--getLinkPlusLineHighlightedopacity--' + this.props.store.drager!.name)
-    //     // if (this.props.store.drager && this.props.store.drager.name) {
-    //     //     return 1;
-    //     // }
-    //     return 0.5;
-    // };
 }
 
 

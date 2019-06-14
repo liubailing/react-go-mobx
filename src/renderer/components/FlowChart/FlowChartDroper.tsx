@@ -209,22 +209,27 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                         var point = myDiagram.transformViewToDoc(new go.Point(mx, my));
                         var curnode: any = myDiagram.findPartAt(point, true);
 
-                        ClearDragerWithout('');
+                     
                         if (curnode && curnode.part) {
                             if (curnode instanceof go.Link) {
-                                let ev: NodeEvent = { eType: NodeEventType.Drag2Link, toLink: curnode.part!.data as FCLinkModel }
-                                this.props.store.addNodeAfterDropLinkHandler(ev);
+                                let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Link, toLink: curnode.part!.data as FCLinkModel }
+                                //this.props.store.addNodeAfterDropLinkHandler(ev);
+                                this.props.store.addNodeBy_DragFCNode2Link_Handler(ev);
+                                
 
                                 console.log(' wfDroper  on Link')
                             } else if (curnode instanceof go.Group) {
                                 console.log(' wfDroper Group ');
                             } else if (curnode instanceof go.Node) {
-                                let ev: NodeEvent = { eType: NodeEventType.Drag2Node, toNode: curnode.part!.data as FCNodeModel }
-                                this.props.store.addNodeAfterDropNodeHandler(ev);
+                                let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Node, toNode: curnode.part!.data as FCNodeModel }
+                                this.props.store.addNodeBy_DragFCNode2Node_Handler(ev);
                                 console.log('wfDroper Node');
                             } else {
                             }
                         }
+
+                        ClearDragerWithout('');
+                        this.props.store.onDragEndFCNodeHandler();
                     }
                 }}
             >

@@ -40,6 +40,7 @@ export const DiagramSetting = {
     moveCond: true,
     moveCondBranch: false,
     renameable: false,
+    showKey: true,
     padding: 2,
     layerSpacing: 30,
     startWidth: 20,
@@ -57,5 +58,6 @@ export const DiagramSetting = {
     groupHeight: 0,
     linkOpacity: 0,
     spotOpacity: 0,
+    openWidth:2,
     test: true
 };

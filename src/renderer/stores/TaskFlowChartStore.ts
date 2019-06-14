@@ -1,6 +1,6 @@
 import { observable, action } from "mobx";
 import {FlowChartStore ,FlowChartNode,IFlowChartStore } from '../components/FlowChart/FCStore';
-import {  FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, FCNodeType, FcNode, FCNodeExtendsType,getFCDiagramType } from '../components/FlowChart/FCEntities';
+import {  FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, FcNode, FCNodeExtendsType,getFCDiagramType } from '../components/FlowChart/FCEntities';
 // import { DiagramSetting } from '../components/FlowChart/FCSettings';
 
 
@@ -182,11 +182,11 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         let fcNode = new FcNode(type as FCNodeType);
 
         if(!!parentKey){
-            let toNode = this.store.model.nodeDataArray.find(x => x.key === parentKey);   
+            //let toNode = this.store.model.nodeDataArray.find(x => x.key === parentKey);   
             //this.store.drager = ({ type: fcNode.fcType, name: fcNode.name, event: {} } as DragNodeEvent)        
-            let newKey =  this.store.addNodeAfterDropNodeHandler({ eType: NodeEventType.Drag2Node, toNode: toNode },false);
+            //let newKey =  this.store.addNodeAfterDropNodeHandler({ eType: NodeEventType.Drag2Node, toNode: toNode },false);
             //this.store.drager = null;
-            return newKey;
+            return '';
         }else{
            //this.store.model.nodeDataArray.push({wftype: fcNode.fcType, name: fcNode.name});
            let newKey =  this.store.addNodeToParnetHandler(fcNode,parent);

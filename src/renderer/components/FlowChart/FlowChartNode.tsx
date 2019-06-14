@@ -32,9 +32,9 @@ class FCNode extends Component<FCNodeProps, FCNodeState> {
     render() {
         return (
             this.state.src ?
-                <div draggable={true}>
-
+                <div>
                     <div
+                        draggable={true}
                         className="divNode"
                         title={`${this.state.title}`}
                         data-type={this.props.type}

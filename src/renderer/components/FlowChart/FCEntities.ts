@@ -29,16 +29,22 @@ export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiag
             cate = FCDiagramType.ConditionGroup;
             break;
         case FCNodeExtendsType.Start:
-            cate = FCDiagramType.Start;
+            cate = FCDiagramType.WFGuideStart;
             break;
         case FCNodeExtendsType.End:
-            cate = FCDiagramType.End;
+            cate = FCDiagramType.WFGuideEnd;
             break;
         case FCNodeExtendsType.WFGuideNode:
             cate = FCDiagramType.WFGuideNode;
             break;
+        case FCNodeExtendsType.SubOpen:
+            cate = FCDiagramType.WFGuideSubOpen;
+            break;
+        case FCNodeExtendsType.WFGuideNode:
+            cate = FCDiagramType.WFGuideSubClose;
+            break;
         default:
-            cate = FCDiagramType.FCNode;
+            cate = FCDiagramType.WFGuideSubClose;
             break;
     }
 
@@ -100,7 +106,11 @@ export class FcNode {
                 src = 'verify';
                 break;
             case FCNodeExtendsType.Branch:
+                title = '条件分支';
                 isGroup =true;
+                break;
+            case FCNodeExtendsType.WFGuideNode:
+                title = '将要执行的流程拖放在此';
                 break;
             default:
                 break;
@@ -194,9 +204,13 @@ export enum NodeEventType {
     // Selected = 'Select_node',
     //Delete = 'Delete_node',
     // Rename = 'Reset_name',
-    Drag2Node = 'Drag_to_node',
-    Drag2Group = 'Drag_to_group',
-    Drag2Link = 'Drag_to_link',
+    // Drag2Node = 'Drag_to_node',
+    // Drag2Group = 'Drag_to_group',
+    //Drag2Link = 'Drag_to_link',
+
+    DragNode2Link= 'dragNode_to_link',
+    DragFCNode2Node = 'dragFCNode_to_node',
+    DragFCNode2Link = 'dragFCNode_to_link',
     // Move2Node = 'Move_to_node',
     // Move2Group = 'Move_to_group',
     // Move2Link = 'Move_to_link',
@@ -269,6 +283,11 @@ export enum FCNodeExtendsType {
      */
     Branch = 'conditon_branch',
 
+    //开启(循坏分支，条件分支)
+    SubOpen = 'WFGuide_SubBegin',
+    //关闭(循坏分支，条件分支)
+    SubClose = 'WFGuide_SubEnd',
+
     /**
      * 辅助点, 某个流程 仅在构图时候使用
      */
@@ -289,15 +308,16 @@ export enum FCDiagramType {
     ConditionGroup = 'ConditionGroup',
     // 条件
     ConditionSwitch = 'ConditionSwitch',
-    // 起始
-    Start = 'Start',
-    // 结束
-    End = 'End',
 
-    //循环起点
-    WFGuideLoopStart = 'WFGuideLoopStart',
-    //循环重点
-    WFGuideLoopEnd = 'WFGuideLoopEnd',
+    // 起始
+    WFGuideStart = 'WFGuide_Start',
+    // 结束
+    WFGuideEnd = 'WFGuide_End',
+
+    //开启(循坏分支，条件分支)
+    WFGuideSubOpen = 'WFGuide_SubOpen',
+    //关闭(循坏分支，条件分支)
+    WFGuideSubClose = 'WFGuide_SubClose',
     // 辅助线
     WFGuideLink = 'WFGuideLink',
     // 辅助点  支线流程的起始节点
