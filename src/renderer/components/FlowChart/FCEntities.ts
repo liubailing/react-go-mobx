@@ -1,6 +1,13 @@
 // import { Diagram } from 'gojs';
 import { BaseNodeModel, LinkModel } from 'react-gojs';
 
+export class FCModelUpdateData {
+    addNodes:FCNodeModel[]=[];
+    addLinks:FCNodeModel[]=[];
+    deleteLinkIndex:Set<number>=new Set();
+    deleteNodeIndex:Set<number>=new Set();
+}
+
 /**
  * 得到节点展示的类型
  * @param fcType 

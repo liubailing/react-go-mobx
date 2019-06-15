@@ -4,7 +4,8 @@ import {  FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, FcNode, FCNodeExt
 // import { DiagramSetting } from '../components/FlowChart/FCSettings';
 
 
-const guideNodeKey = ['Begin', 'End']
+const guideNodeCategories = [FCDiagramType.WFGuideStart,FCDiagramType.WFGuideEnd,FCDiagramType.WFGuideSubOpen,FCDiagramType.WFGuideSubClose,FCDiagramType.WFGuideNode];
+const guideNodeGRoupCategories = [FCDiagramType.LoopGroup,FCDiagramType.ConditionSwitch,FCDiagramType.ConditionGroup];
 
 /**
  * 工作流上 激活的节点
@@ -227,11 +228,19 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * 得到第一个点
      */
     private getFirstFCNodeKey = (group: string): string => {
-        let keys = this.getFCNodesByGroup(group);
-        if (keys.length > 0) {
-            if (guideNodeKey.includes(keys[0])) return keys[1];
-            else return keys[0];
+        debugger;
+        if(!group || group == 'root')group ='';
+        let link = this.store.model.linkDataArray.find(x=>x.group==group && (x.category== FCDiagramType.WFGuideStart ||x.category== FCDiagramType.WFGuideSubOpen));
+
+        if(link && !!link.to){
+            let node = this.store.model.nodeDataArray.find(x=>x.key==link!.to &&x.category && !guideNodeCategories.includes(x.category));
+            if(node  && !!node.key ) return node.key;
         }
+        // let keys = this.getFCNodesByGroup(group);
+        // if (keys.length > 0) {
+        //     if (guideNodeCategories.includes(keys[0])) return keys[1];
+        //     else return keys[0];
+        // }
         return '';
     }
 
@@ -239,10 +248,12 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * 得到最后一个点
      */
     private getLastFCNodeKey = (group: string): string => {
-        let keys = this.getFCNodesByGroup(group);
-        if (keys.length > 0) {
-            if (guideNodeKey.includes(keys[keys.length - 1])) return keys[keys.length - 2];
-            else return keys[keys.length - 1];
+        if(!group || group == 'root')group ='';
+        let link = this.store.model.linkDataArray.find(x=>x.group==group && (x.category== FCDiagramType.WFGuideEnd || x.category== FCDiagramType.WFGuideSubClose));
+
+        if(link && !!link.from){
+            let node = this.store.model.nodeDataArray.find(x=>x.key==link!.from &&x.category && !guideNodeCategories.includes(x.category));
+            if(node && !!node.key ) return node.key;
         }
         return '';
     }
@@ -334,7 +345,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 if (!!node.group) res.parentKey = node.group;
                 else res.parentKey = "root";
 
-                if (node.category && [FCDiagramType.ConditionGroup, FCDiagramType.ConditionSwitch, FCDiagramType.LoopGroup].includes(node.category)) {
+                if (node.category && guideNodeGRoupCategories.includes(node.category)) {
                     let childNNodes: string[] = [];
                     this.store.model.nodeDataArray.map(x => {
                         if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);

@@ -1008,7 +1008,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param node
      */
     onselectionChangedHandler = (node: any) => {
-        console.log('onClickHandler',node)
+        // console.log('onClickHandler',node)
         this.props.store.onNodeSelectionHandler(node.key as string, node.isSelected as boolean);
     }
 

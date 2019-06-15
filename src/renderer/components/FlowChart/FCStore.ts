@@ -1,4 +1,4 @@
-import { observable, action,toJS} from "mobx";
+import { observable, action } from "mobx";
 import go, { Diagram } from 'gojs';
 import { DiagramModel } from 'react-gojs';
 import { ITaskFlowChartRuntime } from '../../stores/TaskFlowChartStore';
@@ -289,8 +289,6 @@ export class FlowChartStore {
         return pwd;
     };
 
-
-
     /**
      * 通过拖动Node释放在node的方式  添加 Node
      * @param state
@@ -361,7 +359,6 @@ export class FlowChartStore {
      * 返回一个需要新增的点和线
      */
     private appendNodeByNodeEvent = (eType: NodeEventType, toItem: FCLinkModel | FCNodeModel): DiagramModel<FCNodeModel, FCLinkModel> => {
-
 
         let _model = { ...this.model };
         let toLink: FCLinkModel | undefined = undefined;
@@ -438,7 +435,6 @@ export class FlowChartStore {
         }
 
 
-
         let delLinkIndexs: Set<number> = new Set();
         let delNodeIndexs: Set<number> = new Set();
         //找到要 删除线
@@ -446,15 +442,20 @@ export class FlowChartStore {
             case NodeEventType.DragFCNode2Node:
                 let delLinkIndex = _model.linkDataArray.findIndex(x => x.from == toNode!.key);
                 delLinkIndexs.add(delLinkIndex);
-                break; 
-            case NodeEventType.DragFCNode2Link:               
+                break;
+            case NodeEventType.DragFCNode2Link:
             case NodeEventType.DragNode2Link:
                 let delLinkIndex2 = _model.linkDataArray.findIndex(x => x.from == toLink!.from);
                 delLinkIndexs.add(delLinkIndex2);
                 let delLinkIndex3 = _model.linkDataArray.findIndex(x => x.to == toLink!.to);
                 delLinkIndexs.add(delLinkIndex3);
         }
-        
+
+
+        //移出项 需要去检测是否需要 添加 提示节点 guide 的group
+        let checkAddGuidGroups: Set<string> = new Set();
+        //移入新 需要去检测是否需要 删除 提示节点 guide 的group
+        let checkRemoveGuidGroups: Set<string> = new Set();
         /**
          * 1、 处理新增该类型的点后 ，返回相应的点和线
          * 2、 删除该移动该点后  删掉以前的点和线的关系
@@ -464,74 +465,108 @@ export class FlowChartStore {
             case NodeEventType.DragFCNode2Link:
                 // 1、处理新增该类型的点后 ，返回相应的点和线
                 let n = this.getDiagramDataByFCNodeType(actNode.wfType as FCNodeType, actNode, actNode.group);
-               
-                // console.log(`处理新增该类型的点后 ，返回相应的点和线`,n)
-                // let linksAdd :FCLinkModel[]=[]; 
-                // //判断要不要删除'提示'点
-                // if (!!actNode.group) {
-                //     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
-                //     if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
-
-                //         let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
-                //         if (guideIndex > -1) {
-                //             let gKey = _model.nodeDataArray[guideIndex].key;
-                //             delNodeIndexs.add(guideIndex);//要删除的点
-                //             let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);                           
-                //             let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
-                //             delLinkIndexs.add(tlinkIndex);//要删除的线
-                //             delLinkIndexs.add(flinkIndex);//要删除的线
-                            
-
-                //             //要新增的线
-                //             let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubOpen)
-                //             let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubClose)
-                //             if(open) linksAdd.push(this.getLink(open.key,actNode!.key,actNode!.group));
-                //             if(close) linksAdd.push(this.getLink(actNode!.key,close.key,actNode!.group));
-                            
-                //         }
-                //     }
-                // }
-                
                 d = {
                     nodeDataArray: [...d.nodeDataArray, ...n.nodeDataArray],
                     linkDataArray: [...d.linkDataArray, ...n.linkDataArray]
                 }
 
-                break;
-            case NodeEventType.DragNode2Link:
-                let flinkIndex = _model.linkDataArray.findIndex(x => x.from == actNode!.key);
-                let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == actNode!.key);
-                delLinkIndexs.add(flinkIndex);
-                delLinkIndexs.add(tlinkIndex);
-               
-                // // 2.1、并接上以前的线
-                // //console.log(' 移出后判断要不要新增提示点被移除的gropupId',delLinkIndexs)
-                // // 移入后 判断要不要删除'提示'点
+                // 2、移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
+                if (!!actNode.group) {
+                    let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
+                    if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                        checkRemoveGuidGroups.add(actNode!.group);
+
+                    }
+                }
+
                 // if (!!actNode.group) {
                 //     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
                 //     if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                //         // let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
+                //         // if (guideIndex > -1) {
+                //         //     let gKey = _model.nodeDataArray[guideIndex].key;
+                //         //     delNodeIndexs.add(guideIndex);//要删除的点
+                //         //     let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);                           
+                //         //     let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
+                //         //     delLinkIndexs.add(tlinkIndex);//要删除的线
+                //         //     delLinkIndexs.add(flinkIndex);//要删除的线
 
-                //         let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
-                //         if (guideIndex > -1) {
-                //             delNodeIndexs.add(guideIndex);//要删除的点
 
-                //              let gKey = _model.nodeDataArray[guideIndex].key;                           
-                //              let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);
-                //              let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
+                //         //     //要新增的线
+                //         //     let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubOpen)
+                //         //     let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubClose)
+                //         //     if(open) linksAdd.push(this.getLink(open.key,actNode!.key,actNode!.group));
+                //         //     if(close) linksAdd.push(this.getLink(actNode!.key,close.key,actNode!.group));
 
-                //              if(flinkIndex>-1 ) _model.linkDataArray[flinkIndex].from = actNode.key;
-                //              if(tlinkIndex>-1) _model.linkDataArray[tlinkIndex].to = actNode.key;//                        
-                //         }
+                //         // }
                 //     }
                 // }
+                break;
+            case NodeEventType.DragNode2Link:
 
-              
-                // // 2、删除该移动该点后  删掉以前的点和线的关系   
+                // 1、删除以前的线
+                let flinkIndex = _model.linkDataArray.findIndex(x => x.from == actNode!.key);
+                let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == actNode!.key);
+                if (flinkIndex > -1) delLinkIndexs.add(flinkIndex);
+                delLinkIndexs.add(tlinkIndex);
+                if (flinkIndex > -1 && tlinkIndex > -1) {
+                    // 1.1、新增一条新链接线
+                    d = {
+                        ...d,
+                        linkDataArray: [...d.linkDataArray,
+                        this.getLink(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group)
+                        ]
+                    }
+                }
+
+                // 2、移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
+                if (!!actNode.group) {
+                    let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
+                    if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                        checkRemoveGuidGroups.add(actNode!.group);
+
+                    }
+                }
+
+                // 3、移出项 需要去检测是否需要 添加 提示节点 guide 的group                
+                if (!!dragBeforeGroup) {
+                    let dragGroupNode = _model.nodeDataArray.find(x => x.key == dragBeforeGroup);
+                    if (dragGroupNode && (dragGroupNode.category == FCDiagramType.LoopGroup || dragGroupNode.category == FCDiagramType.ConditionSwitch)) {
+                        checkAddGuidGroups.add(dragBeforeGroup);
+
+                    }
+                }
+
+
+
+                // 2、 移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
+                // if (!!actNode.group) {
+                //     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
+                //     if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                //         // let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
+                //         // if (guideIndex > -1) {
+                //         //     let gKey = _model.nodeDataArray[guideIndex].key;
+                //         //     delNodeIndexs.add(guideIndex);//要删除的点
+                //         //     let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);                           
+                //         //     let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
+                //         //     delLinkIndexs.add(tlinkIndex);//要删除的线
+                //         //     delLinkIndexs.add(flinkIndex);//要删除的线
+
+
+                //         //     //要新增的线
+                //         //     let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubOpen)
+                //         //     let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubClose)
+                //         //     if(open) linksAdd.push(this.getLink(open.key,actNode!.key,actNode!.group));
+                //         //     if(close) linksAdd.push(this.getLink(actNode!.key,close.key,actNode!.group));
+
+                //         // }
+                //     }
+                // }
 
                 // let isDelateLinks: boolean = true;  //是否是要执行删除操作
                 // //  移出后  判断要不要新增'提示'点
                 // if (!!dragBeforeGroup) {
-                   
+
                 //     let guideTypes: FCDiagramType[] = [FCDiagramType.WFGuideSubOpen, FCDiagramType.WFGuideSubClose, FCDiagramType.WFGuideNode];
                 //     let dragGroupNode = _model.nodeDataArray.find(x => x.key == dragBeforeGroup);
                 //     if (dragGroupNode && (dragGroupNode.category == FCDiagramType.LoopGroup || dragGroupNode.category == FCDiagramType.ConditionSwitch)) {
@@ -546,7 +581,7 @@ export class FlowChartStore {
                 //                 break;
                 //             }
                 //         }
-                       
+
                 //         // 追加一个指引node，且改变线的指引（用新增的点替换移出的）
                 //         if (addGuide) {
                 //             let fc = new FcNode(FCNodeExtendsType.WFGuideNode);
@@ -599,19 +634,100 @@ export class FlowChartStore {
         //删除该删除的点
         _model.nodeDataArray.forEach((x, index) => {
             if (!delNodeIndexs.has(index)) nodes.push(x);
-        })
+        });
 
-    
+        //第一次数据融合
         _model = {
             nodeDataArray: [...nodes, ...d.nodeDataArray],
             linkDataArray: [...links, ...d.linkDataArray]
         }
-        console.log('--links--',toJS(links));
-        console.log('--.d.linkDataArray--',toJS(d.linkDataArray));
-        console.log('--test--', delLinkIndexs,toJS(_model.linkDataArray));
+ 
+        /**
+         *  第二次数据修正
+         */
+        if (checkAddGuidGroups.size > 0 || checkRemoveGuidGroups.size > 0) {
+            delLinkIndexs.clear();
+            delNodeIndexs.clear();
+            let newNodes: FCNodeModel[] = [];
+            let newLinks: FCLinkModel[] = [];
+            let guideTypes: FCDiagramType[] = [FCDiagramType.WFGuideSubOpen, FCDiagramType.WFGuideSubClose, FCDiagramType.WFGuideNode];
+            //新增提示 node
+            checkAddGuidGroups.forEach(groupKey => {
+                let addGuide = true;
+                for (let index = 0; index < _model.nodeDataArray.length; index++) {
+                    const x = _model.nodeDataArray[index];
+                    if (x.group == groupKey && x.category && !guideTypes.includes(x.category)) //不是向导点且除了操作点。
+                    {
+                        addGuide = false;
+                        break;
+                    }
+                }
+
+                if (addGuide) {
+                    let fc = new FcNode(FCNodeExtendsType.WFGuideNode);
+                    let flinkIndex = _model.linkDataArray.findIndex(x => x.group == groupKey);
+                    let guideNode = this.getOneNode(fc.fcType, fc.name, dragBeforeGroup);//要新增的点移除的点
+
+                    newNodes.push(guideNode);
+                    if(flinkIndex>-1){
+                        delLinkIndexs.add(flinkIndex);//要删除的线                  
+                        newLinks.push(this.getLink(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
+                        newLinks.push(this.getLink(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
+                    }
+                }
+
+            });
+
+            //删除提示 node
+            checkRemoveGuidGroups.forEach(groupKey => {
+                //let groupNode = _model.nodeDataArray.find(x => x.key == groupKey);
+                let guideIndex = _model.nodeDataArray.findIndex(x => x.group == groupKey && x.category == FCDiagramType.WFGuideNode);
+                if (guideIndex > -1) {
+                    let gKey = _model.nodeDataArray[guideIndex].key;
+                    delNodeIndexs.add(guideIndex);//要删除的点
+                    let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);
+                    let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
+                    delLinkIndexs.add(tlinkIndex);//要删除的线
+                    delLinkIndexs.add(flinkIndex);//要删除的线
+                    if (flinkIndex > -1 && tlinkIndex > -1)
+                        newLinks.push(this.getLink(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));
+                }
+
+            });
+
+
+            //删除多余的线
+            _model.linkDataArray.forEach((x, index) => {
+                if (!delLinkIndexs.has(index)) newLinks.push(x);
+            })
+
+            //删除该删除的点
+            _model.nodeDataArray.forEach((x, index) => {
+                if (!delNodeIndexs.has(index)) newNodes.push(x);
+            });
+
+            //第二次数据修正
+            _model = {
+                nodeDataArray: [...newNodes],
+                linkDataArray: [...newLinks]
+            }
+
+        }
+
+
+        // console.log('--links--', toJS(links));
+        // console.log('--.d.linkDataArray--', toJS(d.linkDataArray));
+        // console.log('--test--', delLinkIndexs, toJS(_model.linkDataArray));
+        // console.log('--checkGroups--', toJS(checkAddGuidGroups),'------------',checkRemoveGuidGroups);
         return _model;
     }
 
+
+    // private addNode(_model:DiagramModel<FCNodeModel, FCLinkModel>):FCModelUpdateData{
+    //     var d = new FCModelUpdateData();
+
+    //     return d;        
+    // }
 
 
     /**
