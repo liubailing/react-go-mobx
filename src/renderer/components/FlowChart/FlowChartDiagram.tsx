@@ -740,7 +740,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                             cursor: 'pointer',
                             opacity: DiagramSetting.spotOpacity,
                             click: (_e: go.InputEvent, thisObj: GraphObject) => {
-                                this.props.store.addNodeBySelfHandler({ eType: NodeEventType.AddPrvNode, toNode: thisObj.part!.data as FCNodeModel });
+                                this.props.store.addNodeBy_AddCondtionBranch_Handler({ eType: NodeEventType.AddNodeToBefore, toNode: thisObj.part!.data as FCNodeModel });
                             }
                         },
 
@@ -774,7 +774,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                             cursor: 'pointer',
                             opacity: DiagramSetting.spotOpacity,
                             click: (_e: go.InputEvent, thisObj: GraphObject) => {
-                                this.props.store.addNodeBySelfHandler({ eType: NodeEventType.AddNextNode, toNode: thisObj.part!.data as FCNodeModel });
+
+                                this.props.store.addNodeBy_AddCondtionBranch_Handler({ eType: NodeEventType.AddNodeToAfter, toNode: thisObj.part!.data as FCNodeModel });
                             }
                         },
                         $(go.Shape, 'Circle', {
@@ -951,7 +952,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             var control = e.control || e.meta;
             var key = e.key;
             // Quit on any undo/redo key combination:
-            if (control && (key === 'Z' || key === 'Y')) { };
+            if (control && (key === 'Z' || key === 'Y')) { return };
             //将要删除
             if (key === 'Del' && _this.props.store.currKey) {
                 _this.props.store.onRemoveSelectedNodeHandler();

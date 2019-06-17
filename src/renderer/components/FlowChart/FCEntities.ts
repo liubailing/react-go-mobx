@@ -2,10 +2,10 @@
 import { BaseNodeModel, LinkModel } from 'react-gojs';
 
 export class FCModelUpdateData {
-    addNodes:FCNodeModel[]=[];
-    addLinks:FCNodeModel[]=[];
-    deleteLinkIndex:Set<number>=new Set();
-    deleteNodeIndex:Set<number>=new Set();
+    addNodes: FCNodeModel[] = [];
+    addLinks: FCNodeModel[] = [];
+    deleteLinkIndex: Set<number> = new Set();
+    deleteNodeIndex: Set<number> = new Set();
 }
 
 /**
@@ -47,7 +47,7 @@ export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiag
         case FCNodeExtendsType.SubOpen:
             cate = FCDiagramType.WFGuideSubOpen;
             break;
-        case FCNodeExtendsType.WFGuideNode:
+        case FCNodeExtendsType.SubClose:
             cate = FCDiagramType.WFGuideSubClose;
             break;
         default:
@@ -64,12 +64,12 @@ export class FcNode {
         this.fcType = type;
         let title = '';
         let src = '';
-        let isGroup=false;
+        let isGroup = false;
         switch (type as string) {
             case FCNodeType.Condition:
                 title = '判断条件';
                 src = 'condition';
-                isGroup =true;
+                isGroup = true;
                 break;
             case FCNodeType.ExtractData:
                 title = '提取数据';
@@ -86,7 +86,7 @@ export class FcNode {
             case FCNodeType.Loop:
                 title = '循环';
                 src = 'loop';
-                isGroup =true;
+                isGroup = true;
                 break;
             case FCNodeType.LoopBreak:
                 title = '结束循环';
@@ -114,7 +114,7 @@ export class FcNode {
                 break;
             case FCNodeExtendsType.Branch:
                 title = '条件分支';
-                isGroup =true;
+                isGroup = true;
                 break;
             case FCNodeExtendsType.WFGuideNode:
                 title = '将要执行的流程拖放在此';
@@ -131,7 +131,7 @@ export class FcNode {
     fcType: FCNodeType | FCNodeExtendsType = FCNodeType.ExtractData;
     name: string = '';
     src: string = '';
-    isGroup:boolean=false;
+    isGroup: boolean = false;
     get FCDiagramType() {
         return getFCDiagramType(this.fcType);
     };
@@ -215,16 +215,19 @@ export enum NodeEventType {
     // Drag2Group = 'Drag_to_group',
     //Drag2Link = 'Drag_to_link',
 
-    DragNode2Link= 'dragNode_to_link',
+    DragNode2Link = 'dragNode_to_link',
     DragFCNode2Node = 'dragFCNode_to_node',
     DragFCNode2Link = 'dragFCNode_to_link',
+
+    AddNodeToBefore = 'addNode_to_before',
+    AddNodeToAfter = 'addNode_to_after',
     // Move2Node = 'Move_to_node',
     // Move2Group = 'Move_to_group',
     // Move2Link = 'Move_to_link',
     // LinkHightLight = 'Link_HightLight',
     // LinkNomal = 'Link_Normal',
-    AddPrvNode = 'Add_Prv_Node',
-    AddNextNode = 'Add_Next_Node',
+    // AddPrvNode = 'Add_Prv_Node',
+    // AddNextNode = 'Add_Next_Node',
     // HightLightLink = 'HightLight_Link',
     // HightLightNode = 'HightLight_Node',
     // HightLightGroup = 'HightLight_group',
@@ -252,12 +255,12 @@ export enum FCNodeType {
     //识别验证码
     EnterCapacha = 'EnterCapachaAction',
 
-     //切换下拉选项
-     SwitchCombo = 'SwitchCombo2Action',
+    //切换下拉选项
+    SwitchCombo = 'SwitchCombo2Action',
 
     //判断条件
     Condition = 'ConditionAction',
-    
+
     //循环
     Loop = 'LoopAction',
 
@@ -284,7 +287,7 @@ export enum FCNodeExtendsType {
      * 结束
      */
     End = 'end',
-  
+
     /**
      * 判断条件 分支
      */
@@ -328,6 +331,6 @@ export enum FCDiagramType {
     // 辅助线
     WFGuideLink = 'WFGuideLink',
     // 辅助点  支线流程的起始节点
-    WFGuideNode = 'SubStart'
+    WFGuideNode = 'WFGuideNode'
 };
 

@@ -13,8 +13,9 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     //点击流程图上节点
     @action
     onClickNodeHandler = async (_current: ActionNode): Promise<void> => {
-        // let n = this.taskWorkflowStore.getNodeByKey(current.key);
-        //console.log('---onClickNodeHandler----',n);
+        let n = this.taskWorkflowStore.getNodeByKey(_current.key);
+        console.log('---onClickNodeHandler----', n);
+        this.logs(`点击了:${n.key}`);
     }
 
     //删除流程图上的节点
@@ -128,6 +129,14 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     onClickAppendNode = async (pId?: string): Promise<void> => {
         let key = this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData, {}, pId);
+        //    console.log(key);      
+        this.logs(`追加key:${key}`);
+    }
+
+    //追加节点
+    @action
+    onClickAppendBranchNode = async (pId: string): Promise<void> => {
+        let key = this.taskWorkflowStore.appendNodeToNode(ActionNodeType.ExtractData, pId);
         //    console.log(key);      
         this.logs(`追加key:${key}`);
     }

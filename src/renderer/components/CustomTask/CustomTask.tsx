@@ -122,6 +122,7 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>追加节点：</label></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendBranchNode("cond1")}>条件分支1增加条件分支</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("cond1")}>追加到分支1</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("cond2")}>追加到分支2</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("loop")}>追加到循环</Button></Col>
@@ -131,6 +132,7 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                     <Col><label>删除节点：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("node1")}>删除节点</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("loop")}>删除节点 循环</Button></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("cond2")}>删除节点 条件分支2</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("cond")}>删除节点 条件</Button></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("test")}>删除测试节点</Button></Col>
                                 </Row>
