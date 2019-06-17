@@ -1,16 +1,16 @@
 import { observable, action } from "mobx";
-import {FlowChartStore ,FlowChartNode,IFlowChartStore } from '../components/FlowChart/FCStore';
-import {  FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, FcNode, FCNodeExtendsType,getFCDiagramType } from '../components/FlowChart/FCEntities';
+import { FlowChartStore, FlowChartNode, IFlowChartStore } from '../components/FlowChart/FCStore';
+import { FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, FCNodeExtendsType, getFCDiagramType, NodeEventType, NodeEvent } from '../components/FlowChart/FCEntities';
 // import { DiagramSetting } from '../components/FlowChart/FCSettings';
 
 
-const guideNodeCategories = [FCDiagramType.WFGuideStart,FCDiagramType.WFGuideEnd,FCDiagramType.WFGuideSubOpen,FCDiagramType.WFGuideSubClose,FCDiagramType.WFGuideNode];
-const guideNodeGRoupCategories = [FCDiagramType.LoopGroup,FCDiagramType.ConditionSwitch,FCDiagramType.ConditionGroup];
+
+const guideNodeGRoupCategories = [FCDiagramType.LoopGroup, FCDiagramType.ConditionSwitch, FCDiagramType.ConditionGroup];
 
 /**
  * 工作流上 激活的节点
  */
-export class ActionNode extends  FlowChartNode{
+export class ActionNode extends FlowChartNode {
     parentKey: string = ''; //父节点
     childKeys: string[] = [];
     data?: any = {};      // 当前节点的数据
@@ -35,7 +35,7 @@ export enum ActionNodeType {
 /**
  * 工作流程对外事件接口, 外部想要捕捉事件必须实现以下方法
  */
-export interface ITaskFlowChartRuntime  extends IFlowChartStore{}
+export interface ITaskFlowChartRuntime extends IFlowChartStore { }
 
 /**
  *  外部 操作 工作流 接口
@@ -91,6 +91,16 @@ export interface ITaskFlowChartStore {
     */
     appendNode(type: string, data?: any, parent?: string, selected?: boolean): string;
 
+
+    /**
+     * 追加一个节点 到一个节点上
+     * @param type 
+     * @param data 
+     * @param parent 
+     * @param selected 
+     */
+    appendNodeToNode(type: string, nodeKey: string, _data?: any, _selected?: boolean): string;
+
     /**
      * 删除某一节点
      */
@@ -103,7 +113,7 @@ export interface ITaskFlowChartStore {
 }
 
 
-export class TaskFlowChart  extends FlowChartStore {}
+export class TaskFlowChart extends FlowChartStore { }
 
 
 /**************************************
@@ -125,7 +135,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     */
     @action
     init(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
-      
+
         if (!nodes || nodes.length < 0) {
             nodes = [
                 { key: 'Begin', label: '', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
@@ -138,7 +148,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             links = [
                 { from: 'Begin', to: 'End', group: '', isCondition: false }
             ]
-        }        
+        }
 
         nodes.map(x => {
             //this.tempData[x.key]= x.data;
@@ -159,41 +169,65 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     }
 
     /**
-     * 追加一个节点
+     * 追加一个节点 到一个组
      * @param type 
      * @param data 
      * @param parent 
      * @param selected 
      */
     @action
-    appendNode(type: string, _data?: any, parent?: string, _selected?: boolean): string {
+    appendNode(type: string, data?: any, group?: string, _selected?: boolean): string {
+        if (!group) group = '';
 
-        //let node = this.store.model.nodeDataArray.find(x => x.key === parent);
-       
-        if (!parent) parent = '';
+        //得到最后一条线
+        let lastLink = this.store.getLastLink(group);
 
-        if(!!parent){
-            let ind =  this.store.model.nodeDataArray.findIndex(x => x.key === parent); 
-            if(ind<0){
-                return '';
-            } 
+        //初始化数据
+        this.store.draggingNodeType = type as FCNodeType;
+        let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Link, toLink: lastLink };
+
+        //追加节点
+        this.store.addNodeBy_DragFCNode2Link_Handler(ev);
+
+        let lastKey = this.store.getLastFCNodeKey(group);
+
+        //是否需要存储数据
+        if (data) {
+            this.saveNodeData(lastKey, data)
         }
-       
-        let parentKey = this.getLastFCNodeKey(parent); 
-        let fcNode = new FcNode(type as FCNodeType);
 
-        if(!!parentKey){
-            //let toNode = this.store.model.nodeDataArray.find(x => x.key === parentKey);   
-            //this.store.drager = ({ type: fcNode.fcType, name: fcNode.name, event: {} } as DragNodeEvent)        
-            //let newKey =  this.store.addNodeAfterDropNodeHandler({ eType: NodeEventType.Drag2Node, toNode: toNode },false);
-            //this.store.drager = null;
-            return '';
-        }else{
-           //this.store.model.nodeDataArray.push({wftype: fcNode.fcType, name: fcNode.name});
-           let newKey =  this.store.addNodeToParnetHandler(fcNode,parent);
-           return newKey;
-           
+        //返回追加的key
+        return lastKey;
+
+    }
+
+    /**
+     * 追加一个节点 到一个节点上
+     * @param type 
+     * @param data 
+     * @param parent 
+     * @param selected 
+     */
+    @action
+    appendNodeToNode(type: string, nodeKey: string, _data?: any, _selected?: boolean): string {
+
+        //得到点
+        let node = this.store.getFCNode(nodeKey);
+        if (node) {
+            //初始化数据
+            this.store.draggingNodeType = type as FCNodeType;
+            let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Node, toNode: node };
+
+            //追加节点
+            this.store.addNodeBy_DragFCNode2Node_Handler(ev);
+
+            //返回点
+            return this.store.getNodeKeyByFromKey(nodeKey);
         }
+
+        //返回追加的key
+        return '';
+
     }
 
     /**
@@ -224,206 +258,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
 
     }
 
-    /**
-     * 得到第一个点
-     */
-    private getFirstFCNodeKey = (group: string): string => {
-        debugger;
-        if(!group || group == 'root')group ='';
-        let link = this.store.model.linkDataArray.find(x=>x.group==group && (x.category== FCDiagramType.WFGuideStart ||x.category== FCDiagramType.WFGuideSubOpen));
 
-        if(link && !!link.to){
-            let node = this.store.model.nodeDataArray.find(x=>x.key==link!.to &&x.category && !guideNodeCategories.includes(x.category));
-            if(node  && !!node.key ) return node.key;
-        }
-        // let keys = this.getFCNodesByGroup(group);
-        // if (keys.length > 0) {
-        //     if (guideNodeCategories.includes(keys[0])) return keys[1];
-        //     else return keys[0];
-        // }
-        return '';
-    }
-
-    /**
-     * 得到最后一个点
-     */
-    private getLastFCNodeKey = (group: string): string => {
-        if(!group || group == 'root')group ='';
-        let link = this.store.model.linkDataArray.find(x=>x.group==group && (x.category== FCDiagramType.WFGuideEnd || x.category== FCDiagramType.WFGuideSubClose));
-
-        if(link && !!link.from){
-            let node = this.store.model.nodeDataArray.find(x=>x.key==link!.from &&x.category && !guideNodeCategories.includes(x.category));
-            if(node && !!node.key ) return node.key;
-        }
-        return '';
-    }
-
-    // /**
-    //  * 得到第一条线
-    //  */
-    // private _getFirstLink = (group: string): FCLinkModel | undefined => {
-    //     //找到组内所有的点和线
-    //     let links: FCLinkModel[] = [];
-    //     let forms: string[] = [];
-    //     let tos: string[] = [];
-    //     this.store.model.linkDataArray.map(x => {
-    //         if (x.group === group) {
-    //             links.push(x);
-    //             if (!guideNodeKey.includes(x.from) && !guideNodeKey.includes(x.to)) {
-    //                 forms.push(x.from);
-    //                 tos.push(x.to);
-    //             }
-    //         }
-    //     });
-
-    //     // 找到起始线条              
-    //     let f: string = '';
-    //     for (let i = 0; i < forms.length; i++) {
-    //         if (!tos.includes(forms[i])) {
-    //             f = forms[i];
-    //             break;
-    //         }
-    //     }
-    //     if (!!f) {
-    //         for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
-    //             const element = this.store.model.linkDataArray[index];
-    //             if (f === element.from) {
-    //                 return element;
-    //                 break;
-    //             }
-
-    //         }
-    //     }
-    //     return undefined;
-    // }
-
-    // /**
-    //  * 得到最后条线
-    //  */
-    // private _getLastLink = (group: string): FCLinkModel | undefined => {
-    //     //找到组内所有的点和线
-    //     let links: FCLinkModel[] = [];
-    //     let forms: string[] = [];
-    //     let tos: string[] = [];
-    //     this.store.model.linkDataArray.map(x => {
-    //         if (x.group === group) {
-    //             links.push(x);
-    //             forms.push(x.from);
-    //             tos.push(x.to);
-    //         }
-    //     });
-
-    //     // 找到起始线条              
-    //     let t: string = '';
-    //     for (let i = 0; i < tos.length; i++) {
-    //         if (!forms.includes(tos[i])) {
-    //             t = tos[i];
-    //             break;
-    //         }
-
-    //     }
-
-    //     if (!t) {
-    //         for (let index = 0; index < this.store.model.linkDataArray.length; index++) {
-    //             const element = this.store.model.linkDataArray[index];
-    //             if (t === element.to) {
-    //                 return element;
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     return undefined;
-
-    // }
-
-    private getNode = (key: string): ActionNode => {
-        if (!!key) {
-            var res = new ActionNode();
-            let node = this.store.model.nodeDataArray.find(x => x.key === key);
-            if (!!node) {
-
-                if (!!node.group) res.parentKey = node.group;
-                else res.parentKey = "root";
-
-                if (node.category && guideNodeGRoupCategories.includes(node.category)) {
-                    let childNNodes: string[] = [];
-                    this.store.model.nodeDataArray.map(x => {
-                        if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
-                    });
-
-                    // 就一个点时候
-                    if (childNNodes.length <= 1) {
-                        res.childKeys = childNNodes;
-                    } else {
-                        res.childKeys = this.getFCNodesByGroup(node!.key);
-                    }
-                } else {
-                    res.childKeys = [];
-                }
-
-            }
-            if (node && node.wfType)
-                return { ...res, ...node, ...{ type: node!.wfType } };
-            else
-                return { ...res, ...node };
-        }
-        return { key: '', type: '', parentKey: '', childKeys: [], data: null }
-    }
-
-    /**
-     * 得到当前组的字节点，并按顺序排好
-     */
-    private getFCNodesByGroup = (group: string): string[] => {
-        //找到组内所有的点和线
-        let links: FCLinkModel[] = [];
-        let forms: string[] = [];
-        let tos: string[] = [];
-        this.store.model.linkDataArray.map(x => {
-            if (x.group === group) {
-                links.push(x);
-                forms.push(x.from);
-                tos.push(x.to);
-            }
-        });
-
-        // 找到起始线条              
-        let f: string = '';
-        for (let i = 0; i < forms.length; i++) {
-            if (!tos.includes(forms[i])) {
-                f = forms[i];
-                break;
-            }
-
-        }
-
-        let child: Set<string> = new Set();
-        //如果大于0 则表示有多个点
-        if (links.length > 0) {
-            do {
-
-                for (let i = 0; i < links.length; i++) {
-                    if (links[i].from === f) {
-                        child.add(links[i].from);
-                        child.add(links[i].to);
-                        f = links[i].to;
-                        break;
-                    }
-
-                }
-
-            } while (forms.includes(f))
-        } else {
-            for (let i = 0; i < this.store.model.nodeDataArray.length; i++) {
-                if (this.store.model.nodeDataArray[i].group === group)
-                {
-                    child.add(this.store.model.nodeDataArray[i].key);
-                    break;
-                }
-            }
-        }
-
-        return Array.from(child);
-    }
 
     /**
      * 得到某一节点
@@ -454,7 +289,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     getNodesByRoot(parentId?: string): ActionNode[] {
         if (!parentId) parentId = '';
-        let keys = this.getFCNodesByGroup(parentId);
+        let keys = this.store.getFCNodesByGroup(parentId);
         let nodes: ActionNode[] = [];
         keys.map(x => {
             nodes.push(this.getNodeByKey(x));
@@ -469,7 +304,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     getFirstNode(parentId?: string): ActionNode {
         if (!parentId) parentId = '';
 
-        let n = this.getFirstFCNodeKey(parentId);
+        let n = this.store.getFirstFCNodeKey(parentId);
         if (!!n) {
             return this.getNodeByKey(n);
         }
@@ -482,16 +317,54 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     @action
     deleteNodeByKey(key: string): void {
-        this.store.model =  this.store.deleteNodeByKey({...this.store.model },key);
+        this.store.model = this.store.deleteNodeByKey({ ...this.store.model }, key);
     }
 
 
     /**
      * 
      */
-    render():void{
+    render(): void {
         this.store.diagram.layoutDiagram(true);
     }
+
+    /**
+     * 得到一个点  及其点所对应的数据
+     */
+    private getNode = (key: string): ActionNode => {
+        if (!!key) {
+            var res = new ActionNode();
+            let node = this.store.model.nodeDataArray.find(x => x.key === key);
+            if (!!node) {
+
+                if (!!node.group) res.parentKey = node.group;
+                else res.parentKey = "root";
+
+                if (node.category && guideNodeGRoupCategories.includes(node.category)) {
+                    let childNNodes: string[] = [];
+                    this.store.model.nodeDataArray.map(x => {
+                        if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
+                    });
+
+                    // 就一个点时候
+                    if (childNNodes.length <= 1) {
+                        res.childKeys = childNNodes;
+                    } else {
+                        res.childKeys = this.store.getFCNodesByGroup(node!.key);
+                    }
+                } else {
+                    res.childKeys = [];
+                }
+
+            }
+            if (node && node.wfType)
+                return { ...res, ...node, ...{ type: node!.wfType } };
+            else
+                return { ...res, ...node };
+        }
+        return { key: '', type: '', parentKey: '', childKeys: [], data: null }
+    }
+
 
 }
 

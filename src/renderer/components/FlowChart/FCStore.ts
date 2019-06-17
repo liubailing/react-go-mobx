@@ -5,6 +5,8 @@ import { ITaskFlowChartRuntime } from '../../stores/TaskFlowChartStore';
 import { FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, NodeEvent, FCNodeType, FcNode, FCNodeExtendsType } from './FCEntities';
 import { DiagramSetting } from './FCSettings'
 
+const guideNodeCategories = [FCDiagramType.WFGuideStart, FCDiagramType.WFGuideEnd, FCDiagramType.WFGuideSubOpen, FCDiagramType.WFGuideSubClose, FCDiagramType.WFGuideNode];
+
 /**
  * 工作流上 激活的节点
  */
@@ -216,21 +218,21 @@ export class FlowChartStore {
      * @param state
      * @param ev
      */
-    @action
-    addNodeToParnetHandler = (node: FcNode, parentKey: string): string => {
+    //@action
+    // addNodeToParnetHandler = (node: FcNode, parentKey: string): string => {
 
-        var newnode = this.getOneNode(node.fcType, node.name, parentKey);
+    //     var newnode = this.getOneNode(node.fcType, node.name, parentKey);
 
-        var m = { ...this.model };
+    //     var m = { ...this.model };
 
-        this.model = {
-            ...m,
-            nodeDataArray: [...m.nodeDataArray, newnode]
-        };
+    //     this.model = {
+    //         ...m,
+    //         nodeDataArray: [...m.nodeDataArray, newnode]
+    //     };
 
-        return newnode.key;
+    //     return newnode.key;
 
-    };
+    // };
 
     @action
     onRemoveSelectedNodeHandler = (): void => {
@@ -274,35 +276,19 @@ export class FlowChartStore {
         };
     };
 
-
-    /**
-     * 得到一个Key
-     */
-    private getRandomKey = (len: number = 8): string => {
-        len = len < 1 ? 8 : len;
-        let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
-        let maxPos = $chars.length;
-        let pwd = '';
-        for (let i = 0; i < len; i++) {
-            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
-        }
-        return pwd;
-    };
-
     /**
      * 通过拖动Node释放在node的方式  添加 Node
      * @param state
      * @param payload
      */
     @action
-    addNodeBy_DragNode2Link_Handler = (ev: NodeEvent): string => {
+    addNodeBy_DragNode2Link_Handler = (ev: NodeEvent): void => {
         if (!ev.toLink || !ev.toLink.from) {
-            return '';
+            return;
         }
 
         this.model = this.appendNodeByNodeEvent(ev.eType, ev.toLink);
         this.draggingNodeType = null;
-        return '';
     }
 
     /**
@@ -311,15 +297,14 @@ export class FlowChartStore {
      * @param payload
      */
     @action
-    addNodeBy_DragFCNode2Link_Handler = (ev: NodeEvent): string => {
+    addNodeBy_DragFCNode2Link_Handler = (ev: NodeEvent): void => {
         if (!ev.toLink || !ev.toLink.from) {
-            return '';
+            return;
         }
 
         this.model = this.appendNodeByNodeEvent(ev.eType, ev.toLink);
 
         this.draggingNodeType = null;
-        return '';
 
     }
 
@@ -329,27 +314,26 @@ export class FlowChartStore {
      * @param payload
      */
     @action
-    addNodeBy_DragFCNode2Node_Handler = (ev: NodeEvent): string => {
+    addNodeBy_DragFCNode2Node_Handler = (ev: NodeEvent): void => {
         if (!ev.toNode || !ev.toNode.key) {
-            return '';
+            return;
         }
 
         if (ev.toNode.category === FCDiagramType.ConditionGroup) {
             console.log('条件组不支持拖放流程');
-            return '';
+            return;
         }
 
         if (ev.toNode.category === FCDiagramType.ConditionSwitch || ev.toNode.category === FCDiagramType.LoopGroup) {
             if (this.model.nodeDataArray.findIndex(x => x.group === ev.toNode!.key) > -1) {
                 console.log('条件分支,循环 只能支持一个流程');
-                return '';
+                return;
             }
         }
 
 
         this.model = this.appendNodeByNodeEvent(ev.eType, ev.toNode);
         this.draggingNodeType = null;
-        return '';
     }
 
 
@@ -641,7 +625,7 @@ export class FlowChartStore {
             nodeDataArray: [...nodes, ...d.nodeDataArray],
             linkDataArray: [...links, ...d.linkDataArray]
         }
- 
+
         /**
          *  第二次数据修正
          */
@@ -669,7 +653,7 @@ export class FlowChartStore {
                     let guideNode = this.getOneNode(fc.fcType, fc.name, dragBeforeGroup);//要新增的点移除的点
 
                     newNodes.push(guideNode);
-                    if(flinkIndex>-1){
+                    if (flinkIndex > -1) {
                         delLinkIndexs.add(flinkIndex);//要删除的线                  
                         newLinks.push(this.getLink(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
                         newLinks.push(this.getLink(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
@@ -795,6 +779,8 @@ export class FlowChartStore {
     }
 
 
+
+
     /**
     * 删除某一个节点  以及循环删除该节点内的所有点、线
     */
@@ -899,6 +885,150 @@ export class FlowChartStore {
         this.currKey = '';
         return model;
     }
+
+
+
+
+
+
+
+    /***************************************************************************
+     **********  辅助方法  *************
+     **************************************************************************/
+
+    /**
+     * 得到第一个操作点，(向导点除外)
+     */
+    getFirstFCNodeKey = (group: string): string => {
+        //找到第一条
+        let firstLink = this.getFirstLink(group);
+        if (firstLink) {
+            //确定这点不是 向导点
+            let fNode = this.model.nodeDataArray.find(x => x.key == firstLink!.to && x.category && !guideNodeCategories.includes(x.category));
+            if (fNode && fNode.key) return fNode.key;
+        }
+
+        return '';
+    }
+
+    /**
+     * 得到最后一个点，(向导点除外)
+     */
+    getLastFCNodeKey = (group: string): string => {
+        //找到最后
+        let lastLink = this.getLastLink(group);
+        if (lastLink) {
+            //确定这点不是 向导点
+            let lNode = this.model.nodeDataArray.find(x => x.key == lastLink!.from && x.category && !guideNodeCategories.includes(x.category));
+            if (lNode && lNode.key) return lNode.key;
+        }
+
+        return '';
+    }
+
+    /**
+     * 得到第一条线
+     */
+    getFirstLink = (group: string): FCLinkModel | undefined => {
+        if (!group || group == 'root') group = '';
+        //找到起始节点
+        let startNode = this.model.nodeDataArray.find(x => x.group == group && (x.category == FCDiagramType.WFGuideStart || x.category == FCDiagramType.WFGuideSubOpen));
+
+        if (startNode && startNode.key) {
+            //找到第一条
+            let firstLink = this.model.linkDataArray.find(x => x.from == startNode!.key);
+            if (firstLink && firstLink.to) {
+                return firstLink;
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * 得到最后条线
+     */
+    getLastLink = (group: string): FCLinkModel | undefined => {
+        if (!group || group == 'root') group = '';
+        // 找到最后节点
+        let endNode = this.model.nodeDataArray.find(x => x.group == group && (x.category == FCDiagramType.WFGuideEnd || x.category == FCDiagramType.WFGuideSubClose));
+
+        if (endNode && endNode.key) {
+            // 找到最后线
+            let lastLink = this.model.linkDataArray.find(x => x.to == endNode!.key);
+            if (lastLink && lastLink.to) {
+                return lastLink;
+            }
+        }
+
+        return undefined;
+
+    }
+
+    /**
+     * 得到一个点  及其点所对应的数据
+     */
+    getFCNode = (key: string): FCNodeModel | undefined => {
+        if (!!key) {
+            //确定这点不是 向导点
+            let fNode = this.model.nodeDataArray.find(x => x.key == key && x.category && !guideNodeCategories.includes(x.category));
+            if (fNode && fNode.key) return fNode;
+        }
+        return undefined
+    }
+
+
+    /**
+     * 得到一个点  及其点所对应的数据
+     */
+    getNodeKeyByFromKey = (fromKey: string): string => {
+        if (!!fromKey) {
+            //确定这点不是 向导点
+            let flink = this.model.linkDataArray.find(x => x.from == fromKey);
+            if (flink && flink.to) {
+                let node = this.getFCNode(flink.to);
+                if (node) return node.key;
+            }
+        }
+        return ''
+    }
+
+
+
+
+    /**
+     * 得到一个Key
+     */
+    private getRandomKey = (len: number = 8): string => {
+        len = len < 1 ? 8 : len;
+        let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+        let maxPos = $chars.length;
+        let pwd = '';
+        for (let i = 0; i < len; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return pwd;
+    };
+
+
+
+    /**
+     * 得到当前组的字节点，并按顺序排好
+     */
+    getFCNodesByGroup = (group: string): string[] => {
+        let f = this.getFirstFCNodeKey(group);
+        if (!!f) {
+            let keys: string[] = [f];
+            while (!!f) {
+                f = this.getNodeKeyByFromKey(keys[keys.length - 1]);
+                if (!!f) keys.push(f);
+            }
+            return keys;
+        }
+
+        return [];
+    }
+
 
 
     /**

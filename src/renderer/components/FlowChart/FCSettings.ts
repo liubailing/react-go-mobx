@@ -2,8 +2,8 @@
 export const DiagramColors = {
     start: '#69BE70',
     end: '#E06969',
-    diagram_bg:'#fff',
-    diagram_drag_bg:'#eee',
+    diagram_bg: '#fff',
+    diagram_drag_bg: '#eee',
 
     font: '#fff',
     border: '#6383BC',
@@ -40,7 +40,7 @@ export const DiagramSetting = {
     moveCond: true,
     moveCondBranch: false,
     renameable: false,
-    showKey: true,
+    showKey: false,
     padding: 2,
     layerSpacing: 30,
     startWidth: 20,
@@ -54,10 +54,10 @@ export const DiagramSetting = {
     nodeWith: 120,
     nodeHeight: 25,
     groupWith: 160,
-    ConditionWidth: 140,    
+    ConditionWidth: 140,
     groupHeight: 0,
     linkOpacity: 0,
     spotOpacity: 0,
-    openWidth:2,
+    openWidth: 2,
     test: true
 };

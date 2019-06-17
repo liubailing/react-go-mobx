@@ -3,9 +3,9 @@ import go, { Diagram, ToolManager, GraphObject } from 'gojs';
 import { ModelChangeEvent, GojsDiagram, ModelChangeEventType } from 'react-gojs';
 import { observer } from "mobx-react";
 import { action } from 'mobx';
-import {  FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType,  NodeEvent } from './FCEntities';
+import { FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, NodeEvent } from './FCEntities';
 import { DiagramSetting, DiagramColors } from './FCSettings';
-import {TaskFlowChart} from '../../stores/TaskFlowChartStore';
+import { TaskFlowChart } from '../../stores/TaskFlowChartStore';
 import './FlowChartDiagram.less';
 import { FCDiagramDragTool } from './FCDragTool';
 
@@ -29,7 +29,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
         this.mouseLeaveHandler = this.mouseLeaveHandler.bind(this);
         this.mouseDropHandler = this.mouseDropHandler.bind(this);
         this.mouseDragEnterHandler = this.mouseDragEnterHandler.bind(this);
-        this.mouseDragLeaveHandler = this.mouseDragLeaveHandler.bind(this); 
+        this.mouseDragLeaveHandler = this.mouseDragLeaveHandler.bind(this);
         this.mouseDropOverShowLinkAddHandler = this.mouseDropOverShowLinkAddHandler.bind(this);
         this.mouseDropHiddenLinkAddHandler = this.mouseDropHiddenLinkAddHandler.bind(this);
         //this.onTextEdited = this.onTextEdited.bind(this);
@@ -43,7 +43,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
         switch (event.eventType) {
             case ModelChangeEventType.Remove:
                 if (event.nodeData) {
-                   //this.props.store.removeDiagramNodeHandler({ eType: NodeEventType.Delete, key: event.nodeData.key, newLinks: linksToAdd },event.model)
+                    //this.props.store.removeDiagramNodeHandler({ eType: NodeEventType.Delete, key: event.nodeData.key, newLinks: linksToAdd },event.model)
                 }
                 if (event.linkData) {
                     //dispatch(removeLink(event.linkData));
@@ -53,12 +53,12 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                 break;
         }
     }
-    
+
     render() {
         return (
             <GojsDiagram
                 diagramId={divID}
-                className="divDiagram"               
+                className="divDiagram"
                 model={this.props.store.model}
                 createDiagram={this.createDiagram}
                 onModelChange={this.onModelChangeHandler}
@@ -69,7 +69,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
 
     @action
     private createDiagram(diagramId: string): Diagram {
-        console.log(`-----------------------`,this.props.store.model )
+        console.log(`-----------------------`, this.props.store.model)
         // go.Shape.defineFigureGenerator("TriangleDown", function (shape, w, h) {  // predefined in 2.0
         //     return new go.Geometry()
         //         .add(new go.PathFigure(0, 0)
@@ -151,7 +151,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             draggingTool: new FCDiagramDragTool(),
             contentAlignment: go.Spot.TopCenter,
             initialContentAlignment: go.Spot.RightCenter,
-            commandHandler:new go.CommandHandler(),
+            commandHandler: new go.CommandHandler(),
             // 'commandHandler.arrowKeyBehavior': 'move',
             // mouseDragOver: function (_e: go.InputEvent) {
             //     // when the selection is dropped in the diagram's background,
@@ -167,8 +167,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             //     if (!ok) myDiagram.currentTool.doCancel();
             //     console.log('mouseDrop');
             // },
-            mouseDragOver:this.mouseDropOverShowLinkAddHandler,
-            mouseDrop:this.mouseDropHiddenLinkAddHandler,
+            mouseDragOver: this.mouseDropOverShowLinkAddHandler,
+            mouseDrop: this.mouseDropHiddenLinkAddHandler,
             layout: $(go.TreeLayout, {
                 angle: 90,
                 treeStyle: go.TreeLayout.StyleLayered,
@@ -176,7 +176,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                 comparer: go.LayoutVertex.smartComparer
             }),
             // defined below
-            SelectionMoved: function(){               
+            SelectionMoved: function () {
                 myDiagram.layoutDiagram(true);
             },  // defined below
             //TextEdited: this.onTextEdited
@@ -195,8 +195,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                     go.Link,
                     {
                         mouseLeave: this.mouseLeaveHandler,
-                        mouseEnter: this.mouseEnterHandler, 
-                        
+                        mouseEnter: this.mouseEnterHandler,
+
                         mouseDragEnter: this.mouseDragEnterHandler,
                         mouseDragLeave: this.mouseDragLeaveHandler,
                         mouseDrop: this.mouseDropHandler,
@@ -233,7 +233,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                             opacity: 0
                         },
                         //new go.Binding('opacity', 'opacity').ofObject(),
-                        new go.Binding('opacity', 'isHighlighted', function (_h:any) {
+                        new go.Binding('opacity', 'isHighlighted', function (_h: any) {
                             //console.log('--getLinkPlusLineHighlightedopacity--' + h)
                             if (_this.props.store.linkHightlight) {
                                 return 1;
@@ -310,10 +310,13 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         {
                             editable: DiagramSetting.renameable,
                             stroke: DiagramColors.font,
+                            alignment: go.Spot.Center,
+                            verticalAlignment: go.Spot.Center,
+                            height: 14,
                             font: DiagramSetting.font
-                            
+
                         },
-                        new go.Binding('text', DiagramSetting.showKey?'key':'label')
+                        new go.Binding('text', DiagramSetting.showKey ? 'key' : 'label')
                     )
                 )
             );
@@ -329,7 +332,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                     go.Node,
                     'Auto',
                     {
-                        
+
                         movable: false,
                         deletable: false
                     },
@@ -372,8 +375,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                             layerSpacing: DiagramSetting.layerSpacing,
                             arrangementSpacing: new go.Size(30, 10)
                         }),
-                        mouseDragEnter:this.mouseDropOverShowLinkAddHandler,
-                        mouseDrop:this.mouseDropHiddenLinkAddHandler,
+                        mouseDragEnter: this.mouseDropOverShowLinkAddHandler,
+                        mouseDrop: this.mouseDropHiddenLinkAddHandler,
 
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
@@ -498,7 +501,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
 
-                   
+
                         selectionChanged: this.onselectionChangedHandler,
                         // subGraphExpandedChanged: function (group) { }
                     },
@@ -565,8 +568,8 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         mouseEnter: this.mouseEnterHandler,
                         mouseLeave: this.mouseLeaveHandler,
 
-                        mouseDragOver:this.mouseDropOverShowLinkAddHandler,
-                        mouseDrop:this.mouseDropHiddenLinkAddHandler,
+                        mouseDragOver: this.mouseDropOverShowLinkAddHandler,
+                        mouseDrop: this.mouseDropHiddenLinkAddHandler,
 
                         movable: DiagramSetting.moveCond,
                         selectionChanged: this.onselectionChangedHandler,
@@ -648,10 +651,10 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         mouseLeave: this.mouseLeaveHandler,
                         mouseEnter: this.mouseEnterHandler,
 
-                        mouseDragEnter:this.mouseDropOverShowLinkAddHandler,
-                        mouseDrop:this.mouseDropHiddenLinkAddHandler,
+                        mouseDragEnter: this.mouseDropOverShowLinkAddHandler,
+                        mouseDrop: this.mouseDropHiddenLinkAddHandler,
 
-                        selectionChanged:this.onselectionChangedHandler,
+                        selectionChanged: this.onselectionChangedHandler,
 
                         // the group begins unexpanded;
                         // upon expansion, a Diagram Listener will generate contents for the group
@@ -807,7 +810,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         padding: new go.Margin(5),
                         movable: false,
                         deletable: false,
-                        selectable:false
+                        selectable: false
                     },
                     $(
                         go.Panel,
@@ -841,7 +844,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         padding: new go.Margin(5, 2),
                         movable: false,
                         deletable: false,
-                        selectable:false
+                        selectable: false
                     },
                     $(
                         go.Panel,
@@ -877,7 +880,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         height: DiagramSetting.openWidth,
                         movable: false,
                         deletable: false,
-                        selectable:false
+                        selectable: false
                     },
                     $(
                         go.Panel,
@@ -893,7 +896,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                 )
             );
 
-            
+
 
             /**
              * 起始点
@@ -909,7 +912,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         height: DiagramSetting.openWidth,
                         movable: false,
                         deletable: false,
-                        selectable:false
+                        selectable: false
                     },
                     $(
                         go.Panel,
@@ -948,10 +951,10 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             var control = e.control || e.meta;
             var key = e.key;
             // Quit on any undo/redo key combination:
-            if (control && (key === 'Z' || key === 'Y')) {};
+            if (control && (key === 'Z' || key === 'Y')) { };
             //将要删除
-            if (key === 'Del' && _this.props.store.currKey) {              
-                _this.props.store.onRemoveSelectedNodeHandler();              
+            if (key === 'Del' && _this.props.store.currKey) {
+                _this.props.store.onRemoveSelectedNodeHandler();
             }
             //call base method with no arguments (default functionality)
             go.CommandHandler.prototype.doKeyDown.call(this);
@@ -999,7 +1002,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
         //     }
         //   });
         //  // end init
-        
+
         return myDiagram;
     }
 
@@ -1134,45 +1137,45 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      */
     private mouseDragEnterHandler(_e: go.InputEvent, obj: GraphObject): void {
 
-       // used by both the Button Binding and by the changeColor click function
+        // used by both the Button Binding and by the changeColor click function
 
-       let node = (obj as any).part;
-       if (node && node.diagram) {
-           node.diagram.startTransaction('Change color');
+        let node = (obj as any).part;
+        if (node && node.diagram) {
+            node.diagram.startTransaction('Change color');
 
-           let linkAdd = node.findObject('link_Add');
-           if (linkAdd) linkAdd.opacity =1;
+            let linkAdd = node.findObject('link_Add');
+            if (linkAdd) linkAdd.opacity = 1;
 
-           let lbody = node.findObject('link_Body');
-           if (lbody) lbody.stroke = DiagramColors.link_highlight;
+            let lbody = node.findObject('link_Body');
+            if (lbody) lbody.stroke = DiagramColors.link_highlight;
 
-           let linkArr = node.findObject('link_Arr');
-           if (linkArr) linkArr.fill = DiagramColors.link_highlight;
+            let linkArr = node.findObject('link_Arr');
+            if (linkArr) linkArr.fill = DiagramColors.link_highlight;
 
-           
-           let btn = node.findObject('btn_add');
-           if (btn) {
-               btn.fill = DiagramColors.link_highlight;
-           }
 
-           node.diagram.commitTransaction('Change color');
-       }
+            let btn = node.findObject('btn_add');
+            if (btn) {
+                btn.fill = DiagramColors.link_highlight;
+            }
 
-     }
+            node.diagram.commitTransaction('Change color');
+        }
+
+    }
 
     /**
      * 鼠标 拖拽移开
      * @param e
      * @param obj
      */
-    private mouseDragLeaveHandler(_e: go.InputEvent, obj: GraphObject, _obj1: GraphObject): void { 
+    private mouseDragLeaveHandler(_e: go.InputEvent, obj: GraphObject, _obj1: GraphObject): void {
         // console.log("--mouseDragLeaveHandler--",e)
         let node = (obj as any).part;
         if (node && node.diagram) {
             node.diagram.startTransaction('Change color');
 
             let linkAdd = node.findObject('link_Add');
-            if (linkAdd) linkAdd.opacity =1;
+            if (linkAdd) linkAdd.opacity = 1;
 
             let lbody = node.findObject('link_Body');
             if (lbody) lbody.stroke = DiagramColors.link;
@@ -1180,7 +1183,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             let linkArr = node.findObject('link_Arr');
             if (linkArr) linkArr.fill = DiagramColors.link;
 
-            
+
             let btn = node.findObject('btn_add');
             if (btn) {
                 btn.fill = DiagramColors.link;
@@ -1191,11 +1194,11 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
     }
 
 
-     /**
-     * 鼠标 拖拽移时候显示可以新增标记
-     * @param e
-     * @param obj
-     */
+    /**
+    * 鼠标 拖拽移时候显示可以新增标记
+    * @param e
+    * @param obj
+    */
     private mouseDropOverShowLinkAddHandler(_e: go.InputEvent): void {
         this.props.store.onDragStartNodeHandler();
     }
@@ -1205,7 +1208,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param e
      * @param obj
      */
-    private mouseDropHiddenLinkAddHandler(_e: go.InputEvent): void { 
+    private mouseDropHiddenLinkAddHandler(_e: go.InputEvent): void {
         this.props.store.onDragEndNodeHandler();
     }
 
@@ -1216,20 +1219,20 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
      * @param obj
      */
     private mouseDropHandler(_e: go.InputEvent, obj: GraphObject): void {
-            if (obj.part instanceof go.Link) {
-                let ev: NodeEvent = { eType: NodeEventType.DragNode2Link, toLink: obj.part!.data as FCLinkModel}
-                this.props.store.addNodeBy_DragNode2Link_Handler(ev);
-                // console.log('---- mouseDropHandler ------ ',ev);
-                // console.log(' wfDroper  on Link')
-            } else if (obj.part instanceof go.Group) {
-                // console.log(' wfDroper Group ');
-            } else if (obj.part instanceof go.Node) {
-                // let ev: NodeEvent = { eType: NodeEventType.Drag2Node, toNode: obj.part!.data as FCNodeModel }
-                // this.props.store.addNodeAfterDropNodeHandler(ev);
-                // console.log('wfDroper Node');
-            } else {
-            }
-            this.props.store.onDragEndFCNodeHandler();        
+        if (obj.part instanceof go.Link) {
+            let ev: NodeEvent = { eType: NodeEventType.DragNode2Link, toLink: obj.part!.data as FCLinkModel }
+            this.props.store.addNodeBy_DragNode2Link_Handler(ev);
+            // console.log('---- mouseDropHandler ------ ',ev);
+            // console.log(' wfDroper  on Link')
+        } else if (obj.part instanceof go.Group) {
+            // console.log(' wfDroper Group ');
+        } else if (obj.part instanceof go.Node) {
+            // let ev: NodeEvent = { eType: NodeEventType.Drag2Node, toNode: obj.part!.data as FCNodeModel }
+            // this.props.store.addNodeAfterDropNodeHandler(ev);
+            // console.log('wfDroper Node');
+        } else {
+        }
+        this.props.store.onDragEndFCNodeHandler();
 
     }
 }
