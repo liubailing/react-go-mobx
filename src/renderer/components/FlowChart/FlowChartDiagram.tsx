@@ -218,7 +218,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
                         fill: DiagramColors.link
                     }),
                     $(go.Shape, 'Rectangle', {
-                        width: DiagramSetting.nodeWith / 2,
+                        width: DiagramSetting.nodeWith,
                         height: DiagramSetting.layerSpacing + 5,
                         opacity: DiagramSetting.linkOpacity,
                         fill: DiagramColors.link
@@ -1060,6 +1060,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             let btn = node.findObject('btn_add');
             if (btn) {
                 btn.fill = DiagramColors.link_highlight;
+                //btn.height = 100;
             }
 
 
@@ -1116,6 +1117,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             let btn = node.findObject('btn_add');
             if (btn) {
                 btn.fill = DiagramColors.link;
+                // btn.height = 50;
             }
 
             let lspot = node.findObject('left_Spot');
