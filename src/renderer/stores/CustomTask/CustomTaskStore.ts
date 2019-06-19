@@ -1,7 +1,6 @@
-
 import { observable, action } from "mobx";
 import TaskFlowChartStore, { TaskFlowChart, ActionNode, ActionNodeType, ITaskFlowChartRuntime, ITaskFlowChartStore } from "../TaskFlowChartStore";
-import { FCNodeType, FCNodeExtendsType } from "../../components/FlowChart/FCEntities";
+// import { FCNodeType, FCNodeExtendsType } from "../../components/FlowChart/FCEntities";
 
 
 /**
@@ -71,52 +70,85 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     //初始化
     onClickInitFlowChart = async (isDefault: boolean): Promise<void> => {
         //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
-        let nodes = [
-            { key: 'Begin', label: '起始', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
-            { key: 'node1', label: '打开网页', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
-            { key: 'test', label: '测试节点', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
+        // let nodes = [
+        //     { key: 'Begin', label: '起始', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
+        //     { key: 'node1', label: '打开网页', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
+        //     { key: 'test', label: '测试节点', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
 
-            { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
-            { key: 'cond1', label: '分支1', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+        //     { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
+        //     { key: 'cond1', label: '分支1', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
 
-            { key: 'open1', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond1', isGroup: false },
-            { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeExtendsType.WFGuideNode as string, group: 'cond1', isGroup: false },
-            { key: 'close1', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond1', isGroup: false },
+        //     { key: 'open1', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond1', isGroup: false },
+        //     { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeExtendsType.WFGuideNode as string, group: 'cond1', isGroup: false },
+        //     { key: 'close1', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond1', isGroup: false },
 
-            { key: 'cond2', label: '分支2', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+        //     { key: 'cond2', label: '分支2', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
 
-            { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
-            { key: 'open3', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'loop', isGroup: false },
-            { key: 'node456', label: '循环网页', wfType: FCNodeType.Navigate as string, group: 'loop', isGroup: false },
-            { key: 'close3', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'loop', isGroup: false },
+        //     { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
+        //     { key: 'open3', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'loop', isGroup: false },
+        //     { key: 'node456', label: '循环网页', wfType: FCNodeType.Navigate as string, group: 'loop', isGroup: false },
+        //     { key: 'close3', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'loop', isGroup: false },
 
-            { key: 'open2', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond2', isGroup: false },
-            { key: 'data', label: '提取数据', wfType: FCNodeType.ExtractData as string, group: 'cond2', isGroup: false },
-            { key: 'close2', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond2', isGroup: false },
+        //     { key: 'open2', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond2', isGroup: false },
+        //     { key: 'data', label: '提取数据', wfType: FCNodeType.ExtractData as string, group: 'cond2', isGroup: false },
+        //     { key: 'close2', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond2', isGroup: false },
 
-            { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
-        ];
-        let links = [
-            { from: 'Begin', to: 'node1', group: '', isCondition: false },
-            { from: 'node1', to: 'cond', group: '', isCondition: false },
+        //     { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
+        // ];
+        // let links = [
+        //     { from: 'Begin', to: 'node1', group: '', isCondition: false },
+        //     { from: 'node1', to: 'cond', group: '', isCondition: false },
 
-            { from: 'cond', to: 'loop', group: '', isCondition: false },
-            { from: 'open1', to: 'guide1', group: 'cond1', isCondition: false },
-            { from: 'guide1', to: 'close1', group: 'cond1', isCondition: false },
-            { from: 'open2', to: 'data', group: 'cond2', isCondition: false },
-            { from: 'data', to: 'close2', group: 'cond2', isCondition: false },
-            { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true },
+        //     { from: 'cond', to: 'loop', group: '', isCondition: false },
+        //     { from: 'open1', to: 'guide1', group: 'cond1', isCondition: false },
+        //     { from: 'guide1', to: 'close1', group: 'cond1', isCondition: false },
+        //     { from: 'open2', to: 'data', group: 'cond2', isCondition: false },
+        //     { from: 'data', to: 'close2', group: 'cond2', isCondition: false },
+        //     { from: 'cond1', to: 'cond2', group: 'cond', isCondition: true },
 
-            { from: 'loop', to: 'End', group: '', isCondition: false },
-            { from: 'open3', to: 'node456', group: 'loop', isCondition: false },
-            { from: 'node456', to: 'close3', group: 'loop', isCondition: false }
-        ]
+        //     { from: 'loop', to: 'End', group: '', isCondition: false },
+        //     { from: 'open3', to: 'node456', group: 'loop', isCondition: false },
+        //     { from: 'node456', to: 'close3', group: 'loop', isCondition: false }
+        // ]
+
+
+        let node: ActionNode = {
+            key: 'root', type: 'root', childKeys: [], childs: [
+                { key: 'txt', type: ActionNodeType.EnterText as string },
+                {
+                    key: 'cond', type: ActionNodeType.Condition as string, childs: [
+                        {
+                            key: 'branch1-1', type: ActionNodeType.Branch as string, childs: [
+                                { key: 'data11-1', type: ActionNodeType.ExtractData as string },
+                                { key: 'data11-2', type: ActionNodeType.ExtractData as string }
+                            ]
+                        },
+                        {
+                            key: 'branch1-2', type: ActionNodeType.Branch as string, childs: [
+                                { key: 'data12-1', type: ActionNodeType.ExtractData as string },
+                                { key: 'data12-2', type: ActionNodeType.ExtractData as string }
+                            ]
+                        },
+                        {
+                            key: 'branch1-3', type: ActionNodeType.Branch as string
+                        }
+                    ]
+                },
+                {
+                    key: 'loop', type: ActionNodeType.Loop as string, parentKey: "root", childs: [
+                        { key: 'data1', type: ActionNodeType.ExtractData as string },
+                    ]
+                },
+                { key: 'data', type: ActionNodeType.ExtractData as string, parentKey: "root" }
+
+            ]
+        }
 
         if (isDefault) {
             this.taskWorkflowStore.init();
             this.logs(`初始化`);
         } else {
-            this.taskWorkflowStore.init(nodes, links);
+            this.taskWorkflowStore.init(node);
             this.logs(`预设值`);
         }
 

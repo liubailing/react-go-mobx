@@ -11,8 +11,8 @@ const guideNodeGRoupCategories = [FCDiagramType.LoopGroup, FCDiagramType.Conditi
  * 工作流上 激活的节点
  */
 export class ActionNode extends FlowChartNode {
-    parentKey: string = ''; //父节点
-    childKeys: string[] = [];
+    parentKey?: string = ''; //父节点
+    childKeys?: string[] = [];
     data?: any = {};      // 当前节点的数据
     parent?: ActionNode | undefined = undefined; //父节点
     childs?: ActionNode[] = [];
@@ -58,7 +58,7 @@ export interface ITaskFlowChartStore {
     /**
      * 初始化
      */
-    init(nodes?: FCNodeModel[], links?: FCLinkModel[]): void;
+    init(node?: ActionNode): void;
 
     /**
      * 
@@ -137,7 +137,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     * @param links 
     */
     @action
-    init(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
+    init11(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
 
         if (!nodes || nodes.length < 0) {
             nodes = [
@@ -169,6 +169,66 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             nodeDataArray: nodes
         }
 
+    }
+
+
+
+    private getFCNodeModel(fcType: ActionNodeType): FCNodeModel {
+        let node = { key: 'Begin', label: '', wfType: '', group: '', isGroup: false };
+
+        switch (fcType) {
+            case ActionNodeType.Branch:
+                node.wfType = FCDiagramType.ConditionSwitch;
+                break;
+            case ActionNodeType.Loop:
+                node.wfType = FCDiagramType.LoopGroup;
+                break;
+            case ActionNodeType.Condition:
+                node.wfType = FCDiagramType.ConditionGroup;
+                break;
+            default:
+                node.wfType = FCDiagramType.FCNode;
+                break;
+        }
+
+        return node;
+    }
+
+
+
+    /**
+    * 初始化
+    * @param node 
+    */
+    @action
+    init(node?: ActionNode) {
+        let nodes: FCNodeModel[] = [
+            { key: 'Begin', label: '', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
+            { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
+        ];
+        let links: FCLinkModel[] = [
+            { from: 'Begin', to: 'End', group: '', isCondition: false }
+        ];
+
+        if (!!node && node.childs && node.childs.length > 0) {
+
+        }
+
+        nodes.map(x => {
+            //this.tempData[x.key]= x.data;
+            if (!x.data) x.data = {};
+            x.category = getFCDiagramType(x.wfType as FCNodeType);
+        })
+
+
+        links.map(x => {
+            x.category = x.isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink;
+        })
+
+        this.store.model = {
+            linkDataArray: links,
+            nodeDataArray: nodes
+        }
     }
 
     /**
@@ -237,21 +297,19 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * 得到所有节点  转换成直观的树形
      */
     @action
-    getAll(): ActionNode[] {
-
+    getAll(): ActionNode {
         let keys = this.store.getFCNodeKeysByGroup("");
-
-        return this.getFCNodes(keys);
+        let res = { key: 'root', type: 'root', parentKey: '', childKeys: keys, childs: this.getFCNodes(keys) } as ActionNode;
+        return res;
     }
 
     /**
- * 得到当前组的字节点，并按顺序排好
- */
+     * 得到当前组的字节点，并按顺序排好
+     */
     private getFCNodes = (keys: string[]): ActionNode[] => {
 
         let a: ActionNode[] = [];
         let n: ActionNode | undefined = undefined;
-
 
         keys.forEach(x => {
             n = this.getNode(x);
