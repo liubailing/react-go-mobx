@@ -92,6 +92,7 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                                 <Row type='flex' className='divActionItem' style={{ marginTop: '5px' }}>
                                     <Col><label>初始：</label></Col>
                                     <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(true)}>初始化</Button></Col>
+                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetAll()}>得到全部</Button></Col>
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>得到起始结点：</label></Col>

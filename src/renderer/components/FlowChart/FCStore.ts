@@ -1030,7 +1030,7 @@ export class FlowChartStore {
     /**
      * 得到当前组的字节点，并按顺序排好
      */
-    getFCNodesByGroup = (group: string): string[] => {
+    getFCNodeKeysByGroup = (group: string): string[] => {
         let f = this.getFirstFCNodeKey(group);
         if (!!f) {
             let keys: string[] = [f];
@@ -1043,5 +1043,57 @@ export class FlowChartStore {
 
         return [];
     }
+
+    /**
+     * 得到当前组的字节点，并按顺序排好,这个是处理没有起始节点的情况
+     */
+    getFCNodeKeysByGroup2 = (group: string): string[] => {
+        //找到组内所有的点和线
+        let links: FCLinkModel[] = [];
+        let forms: string[] = [];
+        let tos: string[] = [];
+        this.model.linkDataArray.map(x => {
+            if (x.group === group) {
+                links.push(x);
+                forms.push(x.from);
+                tos.push(x.to);
+            }
+        });
+
+        // 找到起始线条              
+        let f: string = '';
+        for (let i = 0; i < forms.length; i++) {
+            if (!tos.includes(forms[i])) {
+                f = forms[i];
+                break;
+            }
+
+        }
+
+        let child: Set<string> = new Set();
+        //如果大于0 则表示有多个点
+        if (links.length > 0) {
+            do {
+
+                for (let i = 0; i < links.length; i++) {
+                    if (links[i].from === f) {
+                        child.add(links[i].from);
+                        child.add(links[i].to);
+                        f = links[i].to;
+                        break;
+                    }
+
+                }
+
+            } while (forms.includes(f))
+        } else {
+            child.add(f);
+        }
+
+        return Array.from(child);
+    }
+
+
+
 
 }

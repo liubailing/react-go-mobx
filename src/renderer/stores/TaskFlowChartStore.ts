@@ -14,7 +14,10 @@ export class ActionNode extends FlowChartNode {
     parentKey: string = ''; //父节点
     childKeys: string[] = [];
     data?: any = {};      // 当前节点的数据
+    parent?: ActionNode | undefined = undefined; //父节点
+    childs?: ActionNode[] = [];
 }
+
 
 /**
  * 操作节点类型
@@ -231,12 +234,36 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     }
 
     /**
-     * 得到所有节点
+     * 得到所有节点  转换成直观的树形
      */
     @action
-    getAll(): any {
-        return this.store.model;
+    getAll(): ActionNode[] {
+
+        let keys = this.store.getFCNodeKeysByGroup("");
+
+        return this.getFCNodes(keys);
     }
+
+    /**
+ * 得到当前组的字节点，并按顺序排好
+ */
+    private getFCNodes = (keys: string[]): ActionNode[] => {
+
+        let a: ActionNode[] = [];
+        let n: ActionNode | undefined = undefined;
+
+
+        keys.forEach(x => {
+            n = this.getNode(x);
+            if (!!n && !!n.key && n.childKeys && n.childKeys.length > 0) {
+                n.childs = this.getFCNodes(n.childKeys)
+            }
+            a.push(n);
+        });
+
+        return a;
+    }
+
 
     /**
      * 保存某一个节点的 data 数据
@@ -289,7 +316,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     getNodesByRoot(parentId?: string): ActionNode[] {
         if (!parentId) parentId = '';
-        let keys = this.store.getFCNodesByGroup(parentId);
+        let keys = this.store.getFCNodeKeysByGroup(parentId);
         let nodes: ActionNode[] = [];
         keys.map(x => {
             nodes.push(this.getNodeByKey(x));
@@ -341,17 +368,21 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 else res.parentKey = "root";
 
                 if (node.category && guideNodeGRoupCategories.includes(node.category)) {
-                    let childNNodes: string[] = [];
-                    this.store.model.nodeDataArray.map(x => {
-                        if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
-                    });
+                    if (node.category === FCDiagramType.ConditionGroup)
+                        res.childKeys = this.store.getFCNodeKeysByGroup2(node!.key);
+                    else
+                        res.childKeys = this.store.getFCNodeKeysByGroup(node!.key);
+                    // let childNNodes: string[] = [];
+                    // this.store.model.nodeDataArray.map(x => {
+                    //     if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
+                    // });
 
-                    // 就一个点时候
-                    if (childNNodes.length <= 1) {
-                        res.childKeys = childNNodes;
-                    } else {
-                        res.childKeys = this.store.getFCNodesByGroup(node!.key);
-                    }
+                    // // 就一个点时候
+                    // if (childNNodes.length <= 1) {
+                    //     res.childKeys = childNNodes;
+                    // } else {
+
+                    // }
                 } else {
                     res.childKeys = [];
                 }
@@ -364,7 +395,6 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         }
         return { key: '', type: '', parentKey: '', childKeys: [], data: null }
     }
-
 
 }
 

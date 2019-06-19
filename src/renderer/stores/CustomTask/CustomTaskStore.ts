@@ -61,6 +61,13 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     onClickRender = async (): Promise<void> => {
         this.taskWorkflowStore.render();
     }
+
+
+    //得到全部数据
+    onClickGetAll = async (): Promise<void> => {
+        let a = this.taskWorkflowStore.getAll();
+        console.log('得到全部数据', a);
+    }
     //初始化
     onClickInitFlowChart = async (isDefault: boolean): Promise<void> => {
         //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
@@ -115,21 +122,17 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
     }
 
-
     //删除流程图上的节点
     @action
     onClickDeleteNodeHandler = async (key: string): Promise<void> => {
-        //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
         this.taskWorkflowStore.deleteNodeByKey(key);
         this.logs(`删除key:${key}`);
     }
-
 
     //追加节点
     @action
     onClickAppendNode = async (pId?: string): Promise<void> => {
         let key = this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData, {}, pId);
-        //    console.log(key);      
         this.logs(`追加key:${key}`);
     }
 
@@ -137,7 +140,6 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     onClickAppendBranchNode = async (pId: string): Promise<void> => {
         let key = this.taskWorkflowStore.appendNodeToNode(ActionNodeType.ExtractData, pId);
-        //    console.log(key);      
         this.logs(`追加key:${key}`);
     }
 
@@ -145,8 +147,6 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     onClickAppendNodeByType = async (type: ActionNodeType, pId?: string): Promise<void> => {
         this.currKey = this.taskWorkflowStore.appendNode(type, { data: 'test.data' }, pId);
-
-        //    console.log(key);      
         this.logs(`追加key:${this.currKey}`);
     }
 
@@ -154,39 +154,27 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     onClickAppendNodeToNodeByType = async (type: ActionNodeType): Promise<void> => {
         this.currKey = this.taskWorkflowStore.appendNodeToNode(type, this.currKey, { data: 'test.data' });
-
-        //    console.log(key);      
         this.logs(`追加key:${this.currKey}`);
     }
-
-
 
     //得到第一个节点
     @action
     onClickGetFirstNode = async (pId?: string): Promise<void> => {
         let node = this.taskWorkflowStore.getFirstNode(pId)
-        //   console.log('---getFirstNode----',node);
         this.logs(`key:${node.key},type:${node.type}`);
     }
-
-
 
     //得到第一个节点
     @action
     onClickSaveData = async (): Promise<void> => {
         let node = this.taskWorkflowStore.getFirstNode();
-
         if (node.key) {
             this.taskWorkflowStore.saveNodeData(node.key, {
                 data: "这是刚刚刚存放的一数据",
-
             })
         }
-        //   console.log('---getFirstNode----',node);
         this.logs(`key:${node.key},type:${node.type}`);
     }
-
-
 
     //得到第一个节点
     @action
@@ -201,8 +189,6 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     @action
     logs = (str: string) => {
         this.actionLogs.unshift(str);
-        //console.log(`logs--`,toJS(this.actionLogs));
-        //document.getElementById("divResult")!.innerHTML= document.getElementById("divResult")!.innerHTML+ str+'<br />';
     }
 
 }
