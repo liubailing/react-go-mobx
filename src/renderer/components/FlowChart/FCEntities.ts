@@ -8,11 +8,12 @@ export class FCModelUpdateData {
     deleteNodeIndex: Set<number> = new Set();
 }
 
+
 /**
  * 得到节点展示的类型
  * @param fcType 
  */
-export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiagramType => {
+export const getFCDiagramType = (fcType: string): FCDiagramType => {
     let cate = FCDiagramType.FCNode
     switch (fcType) {
         case FCNodeType.ExtractData:
@@ -26,7 +27,7 @@ export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiag
         case FCNodeType.EnterCapacha:
             cate = FCDiagramType.FCNode;
             break;
-        case FCNodeExtendsType.Branch:
+        case FCNodeType.Branch:
             cate = FCDiagramType.ConditionSwitch;
             break;
         case FCNodeType.Loop:
@@ -35,19 +36,19 @@ export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiag
         case FCNodeType.Condition:
             cate = FCDiagramType.ConditionGroup;
             break;
-        case FCNodeExtendsType.Start:
+        case FCNodeType.Start:
             cate = FCDiagramType.WFGuideStart;
             break;
-        case FCNodeExtendsType.End:
+        case FCNodeType.End:
             cate = FCDiagramType.WFGuideEnd;
             break;
-        case FCNodeExtendsType.WFGuideNode:
+        case FCNodeType.WFGuideNode:
             cate = FCDiagramType.WFGuideNode;
             break;
-        case FCNodeExtendsType.SubOpen:
+        case FCNodeType.SubOpen:
             cate = FCDiagramType.WFGuideSubOpen;
             break;
-        case FCNodeExtendsType.SubClose:
+        case FCNodeType.SubClose:
             cate = FCDiagramType.WFGuideSubClose;
             break;
         default:
@@ -60,7 +61,7 @@ export const getFCDiagramType = (fcType: FCNodeType | FCNodeExtendsType): FCDiag
 }
 
 export class FcNode {
-    constructor(type: FCNodeType | FCNodeExtendsType) {
+    constructor(type: FCNodeType | string) {
         this.fcType = type;
         let title = '';
         let src = '';
@@ -112,11 +113,11 @@ export class FcNode {
                 title = '识别验证码';
                 src = 'verify';
                 break;
-            case FCNodeExtendsType.Branch:
+            case FCNodeType.Branch:
                 title = '条件分支';
                 isGroup = true;
                 break;
-            case FCNodeExtendsType.WFGuideNode:
+            case FCNodeType.WFGuideNode:
                 title = '将要执行的流程拖放在此';
                 break;
             default:
@@ -128,12 +129,40 @@ export class FcNode {
         this.isGroup = isGroup;
     }
 
-    fcType: FCNodeType | FCNodeExtendsType = FCNodeType.ExtractData;
+    fcType: FCNodeType | string = FCNodeType.ExtractData;
     name: string = '';
     src: string = '';
     isGroup: boolean = false;
-    get FCDiagramType() {
+    get FCDiagramType(): FCDiagramType {
         return getFCDiagramType(this.fcType);
+    };
+
+
+    private getRandomKey = (len: number = 8): string => {
+        len = len < 1 ? 8 : len;
+        let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+        let maxPos = $chars.length;
+        let pwd = '';
+        for (let i = 0; i < len; i++) {
+            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+        }
+        return pwd;
+    }
+
+    get nodeModel(): FCNodeModel {
+        let n: FCNodeModel = {
+            type: this.fcType,
+            group: '',
+            label: this.name,
+
+            key: this.getRandomKey(),
+            diagramType: this.FCDiagramType,
+            isGroup: this.isGroup,
+            hasChild: false,
+            opacity: 0,
+        };
+        n.category = n.diagramType;
+        return n;
     };
 
 }
@@ -146,15 +175,16 @@ export interface FCNodeModel extends BaseNodeModel {
 
     label: string; //步骤名称
     group: string; // 所在分组
-    wfType: string; // 节点  类型  FCNodeType
-    isGroup: boolean; // 是否是组
+    type: string; // 节点  类型  FCNodeType
+    isGroup: boolean; // 是否是组  
 
     hasChild?: boolean; // 是否有子步骤    当 isGroup == true ,必须给 hasChild赋值
     data?: any; // 对应的配置属性  交互使用的数据
 
     //以下属性不用管
-    category?: FCDiagramType; // 图形分类      对应 FCDiagramType     FCNode | LoopGroup | ConditionGroup | Condition | Start | End
+    diagramType?: FCDiagramType; // 图形分类      对应 FCDiagramType     FCNode | LoopGroup | ConditionGroup | Condition | Start | End
     opacity?: number; //
+    category?: string; // 节点  类型  FCNodeType
 }
 
 /**
@@ -163,14 +193,11 @@ export interface FCNodeModel extends BaseNodeModel {
 export interface FCLinkModel extends LinkModel {
     from: string; // 连线起始点
     to: string; // 连线结束点
-
     group: string; // 所在分组
-    isCondition: boolean; //是否是在条件分支的连线  这个比较特殊 ****
 
     //以下属性不用管
-    category?: FCDiagramType; // 图形分类      对应 FCDiagramType 里面的    WFLink | WFGuideLink
-    fromSpot?: string;
-    toSpot?: string;
+    diagramType?: FCDiagramType; // 图形分类      对应 FCDiagramType 里面的    WFLink | WFGuideLink
+    category?: string;
     opacity?: 0 | 1;
 }
 
@@ -271,14 +298,9 @@ export enum FCNodeType {
     LoopBreak = 'LoopEnd',
 
     //某个流程结束
-    SubEnd = 'Subend'
-}
+    SubEnd = 'Subend',
 
 
-/**
- * 相关设置和类
- */
-export enum FCNodeExtendsType {
     /**
      * 起始
      */
@@ -291,11 +313,16 @@ export enum FCNodeExtendsType {
     /**
      * 判断条件 分支
      */
-    Branch = 'conditon_branch',
+    Branch = 'BranchAction',
 
-    //开启(循坏分支，条件分支)
+    /**
+     * 开启(循坏分支，条件分支)
+     */
     SubOpen = 'WFGuide_SubBegin',
-    //关闭(循坏分支，条件分支)
+
+    /**
+    *关闭(循坏分支，条件分支)
+    */
     SubClose = 'WFGuide_SubEnd',
 
     /**
@@ -303,6 +330,36 @@ export enum FCNodeExtendsType {
      */
     WFGuideNode = 'wfgridenode'
 }
+
+
+/**
+ * 相关设置和类
+ */
+// export enum FCNodeType {
+//     /**
+//      * 起始
+//      */
+//     Start = 'start',
+//     /**
+//      * 结束
+//      */
+//     End = 'end',
+
+//     /**
+//      * 判断条件 分支
+//      */
+//     Branch = 'conditon_branch',
+
+//     //开启(循坏分支，条件分支)
+//     SubOpen = 'WFGuide_SubBegin',
+//     //关闭(循坏分支，条件分支)
+//     SubClose = 'WFGuide_SubEnd',
+
+//     /**
+//      * 辅助点, 某个流程 仅在构图时候使用
+//      */
+//     WFGuideNode = 'wfgridenode'
+// }
 
 /**
  * 图形分类

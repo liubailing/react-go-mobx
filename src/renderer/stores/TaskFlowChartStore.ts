@@ -1,6 +1,8 @@
 import { observable, action } from "mobx";
 import { FlowChartStore, FlowChartNode, IFlowChartStore } from '../components/FlowChart/FCStore';
-import { FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, FCNodeExtendsType, getFCDiagramType, NodeEventType, NodeEvent } from '../components/FlowChart/FCEntities';
+import { FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, getFCDiagramType, NodeEventType, NodeEvent } from '../components/FlowChart/FCEntities';
+import { DiagramModel } from 'react-gojs';
+// import { Diagram } from 'gojs';
 // import { DiagramSetting } from '../components/FlowChart/FCSettings';
 
 
@@ -126,73 +128,148 @@ export class TaskFlowChart extends FlowChartStore { }
  */
 class TaskFlowChartStore implements ITaskFlowChartStore {
     @observable private store: TaskFlowChart;
+
+    @observable private storeData = {};
     // @observable private tempData:any={};
     constructor(props: TaskFlowChart) {
         this.store = props;
     }
 
-    /**
-    * 初始化
-    * @param nodes 
-    * @param links 
-    */
-    @action
-    init11(nodes?: FCNodeModel[], links?: FCLinkModel[]) {
 
-        if (!nodes || nodes.length < 0) {
-            nodes = [
-                { key: 'Begin', label: '', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
-                { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
-            ];
 
-        }
+    //初始化数据
+    private initData(parent: ActionNode, childs?: ActionNode[]): DiagramModel<FCNodeModel, FCLinkModel> {
+        let d: DiagramModel<FCNodeModel, FCLinkModel> = { nodeDataArray: [], linkDataArray: [] };
 
-        if (!links || links.length < 0) {
-            links = [
-                { from: 'Begin', to: 'End', group: '', isCondition: false }
-            ]
-        }
+        let links: FCLinkModel[] = [];
+        let nodes: FCNodeModel[] = [];
 
-        nodes.map(x => {
-            //this.tempData[x.key]= x.data;
-            if (!x.data) x.data = {};
-            x.category = getFCDiagramType(x.wfType as FCNodeType);
+        if (!childs || childs.length < 1) {
+            let loopStart = this.store.getFCNodeModel(FCNodeType.SubOpen);
+            loopStart.group = parent.key;
+            let loopEnd = this.store.getFCNodeModel(FCNodeType.SubClose);
+            loopEnd.group = parent.key;
+            let guide = this.store.getFCNodeModel(FCNodeType.WFGuideNode);
+            guide.group = parent.key;
+
+            links.push(this.store.getFCLinkModel(loopStart.key, guide.key, parent.key));
+            links.push(this.store.getFCLinkModel(guide.key, loopEnd.key, parent.key));
+            nodes.push(loopStart);
+            nodes.push(loopEnd);
+            nodes.push(guide);
+
+
+            return {
+                nodeDataArray: [...d.nodeDataArray, ...nodes],
+                linkDataArray: [...d.linkDataArray, ...links]
+            };
+        };
+
+
+        childs.forEach((x, i) => {
+            if (i == 0 || i == childs.length) {
+            } else {
+                links.push(this.store.getFCLinkModel(childs[i - 1].key, childs[i].key, parent.key, parent.type == ActionNodeType.Condition));
+            }
+            nodes.push(this.getFCNodeModel(x, parent.key));
+
+            switch (x.type) {
+                case ActionNodeType.Condition:
+                case ActionNodeType.Loop:
+                case ActionNodeType.Branch:
+                    //如果有子集                 
+                    let c = this.initData(x, x.childs);
+                    d = {
+                        nodeDataArray: [...d.nodeDataArray, ...c.nodeDataArray],
+                        linkDataArray: [...d.linkDataArray, ...c.linkDataArray]
+                    };
+                    break;
+                default:
+                    break
+            }
+
+
+
+
+
+            this.storeData[x.key] = x.data;
         })
 
 
-        links.map(x => {
-            x.category = x.isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink;
-        })
-
-        this.store.model = {
-            linkDataArray: links,
-            nodeDataArray: nodes
-        }
-
-    }
-
-
-
-    private getFCNodeModel(fcType: ActionNodeType): FCNodeModel {
-        let node = { key: 'Begin', label: '', wfType: '', group: '', isGroup: false };
-
-        switch (fcType) {
-            case ActionNodeType.Branch:
-                node.wfType = FCDiagramType.ConditionSwitch;
-                break;
-            case ActionNodeType.Loop:
-                node.wfType = FCDiagramType.LoopGroup;
-                break;
+        switch (parent.type) {
             case ActionNodeType.Condition:
-                node.wfType = FCDiagramType.ConditionGroup;
                 break;
+            case ActionNodeType.Branch:
+            // let branchStart = this.store.getFCNodeModel(FCNodeType.SubOpen);
+            // branchStart.group = parent.key;
+            // let branchEnd = this.store.getFCNodeModel(FCNodeType.SubClose);
+            // branchEnd.group = parent.key;
+            // links.push(this.store.getFCLinkModel(branchStart.key, nodes[0].key, parent.key));
+            // links.push(this.store.getFCLinkModel(nodes[nodes.length - 1].key, branchEnd.key, parent.key));
+            // nodes.push(branchStart);
+            // nodes.push(branchEnd);
+            // break;
+            case ActionNodeType.Loop:
+                let loopStart = this.store.getFCNodeModel(FCNodeType.SubOpen);
+                loopStart.group = parent.key;
+                let loopEnd = this.store.getFCNodeModel(FCNodeType.SubClose);
+                loopEnd.group = parent.key;
+                links.push(this.store.getFCLinkModel(loopStart.key, nodes[0].key, parent.key));
+                links.push(this.store.getFCLinkModel(nodes[nodes.length - 1].key, loopEnd.key, parent.key));
+                nodes.push(loopStart);
+                nodes.push(loopEnd);
+                break
             default:
-                node.wfType = FCDiagramType.FCNode;
+                let start = this.store.getFCNodeModel(FCNodeType.Start);
+                let end = this.store.getFCNodeModel(FCNodeType.End);
+                links.push(this.store.getFCLinkModel(start.key, nodes[0].key, parent.key));
+                links.push(this.store.getFCLinkModel(nodes[nodes.length - 1].key, end.key, parent.key));
+                nodes.push(start);
+                nodes.push(end);
                 break;
+
         }
 
-        return node;
+        return {
+            nodeDataArray: [...d.nodeDataArray, ...nodes],
+            linkDataArray: [...d.linkDataArray, ...links]
+        };
     }
+
+    private getFCNodeModel(node: ActionNode, parentkey: string): FCNodeModel {
+        let f = this.store.getFCNodeModel(node.type);
+        let n: FCNodeModel = {
+            type: node.type,
+            group: '',
+            label: f.label,
+            key: node.key,
+            diagramType: f.diagramType,
+            isGroup: f.isGroup
+        };
+        n.category = n.diagramType;
+        return { ...n, ...{ group: parentkey } };
+    }
+
+    // private getFCNodeModel(fcType: string): FCNodeModel {
+    //     let node = { key: 'Begin', label: '', type: '', group: '', isGroup: false };
+
+    //     switch (fcType) {
+    //         case ActionNodeType.Branch:
+    //             node.type = FCDiagramType.ConditionSwitch;
+    //             break;
+    //         case ActionNodeType.Loop:
+    //             node.type = FCDiagramType.LoopGroup;
+    //             break;
+    //         case ActionNodeType.Condition:
+    //             node.type = FCDiagramType.ConditionGroup;
+    //             break;
+    //         default:
+    //             node.type = FCDiagramType.FCNode;
+    //             break;
+    //     }
+
+    //     return node;
+    // }
 
 
 
@@ -202,34 +279,44 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     */
     @action
     init(node?: ActionNode) {
-        let nodes: FCNodeModel[] = [
-            { key: 'Begin', label: '', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
-            { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
-        ];
-        let links: FCLinkModel[] = [
-            { from: 'Begin', to: 'End', group: '', isCondition: false }
-        ];
+        let nodes: FCNodeModel[] = [];
+        let links: FCLinkModel[] = [];
+        if (!node || !node.childs || node.childs.length < 1) {
+            let start = this.store.getFCNodeModel(FCNodeType.Start);
+            let end = this.store.getFCNodeModel(FCNodeType.End);
+            nodes = [
+                start,
+                end
+            ];
+            links = [
+                this.store.getFCLinkModel(start.key, end.key, end.group)
+            ];
 
-        if (!!node && node.childs && node.childs.length > 0) {
+            if (!!node && node.childs && node.childs.length > 0) {
 
+            }
+
+
+            nodes.map(x => {
+                x.diagramType = getFCDiagramType(x.type as FCNodeType);
+            });
+
+        } else {
+            let d = this.initData(node, node.childs);
+            links = d.linkDataArray;
+            nodes = d.nodeDataArray;
         }
 
-        nodes.map(x => {
-            //this.tempData[x.key]= x.data;
-            if (!x.data) x.data = {};
-            x.category = getFCDiagramType(x.wfType as FCNodeType);
-        })
-
-
-        links.map(x => {
-            x.category = x.isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink;
-        })
+        // links.map(x => {
+        //     x.diagramType = x.isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink;
+        // })
 
         this.store.model = {
             linkDataArray: links,
             nodeDataArray: nodes
         }
     }
+
 
     /**
      * 追加一个节点 到一个组
@@ -240,8 +327,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     @action
     appendNode(type: string, data?: any, group?: string, _selected?: boolean): string {
-        if (!group) group = '';
-
+        if (!group) group = 'root';
         //得到最后一条线
         let lastLink = this.store.getLastLink(group);
 
@@ -298,7 +384,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     @action
     getAll(): ActionNode {
-        let keys = this.store.getFCNodeKeysByGroup("");
+        debugger;
+        let keys = this.store.getFCNodeKeysByGroup("root");
         let res = { key: 'root', type: 'root', parentKey: '', childKeys: keys, childs: this.getFCNodes(keys) } as ActionNode;
         return res;
     }
@@ -330,14 +417,15 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     @action
     saveNodeData(key: string, data: any) {
-        let node: FCNodeModel | undefined = this.store.model.nodeDataArray.find(x => x.key == key);
-        if (node) {
-            node.data = data;
-            // this.store.model = {
-            //     ...this.store.model,
-            //     nodeDataArray: [...this.store.model.nodeDataArray, node]
-            // }
-        }
+        // let node: FCNodeModel | undefined = this.store.model.nodeDataArray.find(x => x.key == key);
+        // if (node) {
+        //     node.data = data;
+        //     // this.store.model = {
+        //     //     ...this.store.model,
+        //     //     nodeDataArray: [...this.store.model.nodeDataArray, node]
+        //     // }
+        // }
+        this.storeData[key] = data;
         //this.tempData[key]= data;
         return true
 
@@ -350,7 +438,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * @param key 
      */
     getNodeByKey(key: string): ActionNode {
-        return this.getNode(key);
+        let node = this.getNode(key);
+        return { ...node, ...{ data: this.storeData[key] } };
     }
 
 
@@ -361,7 +450,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     getNodesByType(type: ActionNodeType): ActionNode[] {
         let arr: ActionNode[] = [];
         this.store.model.nodeDataArray.map(x => {
-            if (x.wfType == type as string) {
+            if (x.type == type as string) {
                 arr.push(this.getNode(x.key));
             }
         })
@@ -425,14 +514,14 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 if (!!node.group) res.parentKey = node.group;
                 else res.parentKey = "root";
 
-                if (node.category && guideNodeGRoupCategories.includes(node.category)) {
-                    if (node.category === FCDiagramType.ConditionGroup)
+                if (node.diagramType && guideNodeGRoupCategories.includes(node.diagramType)) {
+                    if (node.diagramType === FCDiagramType.ConditionGroup)
                         res.childKeys = this.store.getFCNodeKeysByGroup2(node!.key);
                     else
                         res.childKeys = this.store.getFCNodeKeysByGroup(node!.key);
                     // let childNNodes: string[] = [];
                     // this.store.model.nodeDataArray.map(x => {
-                    //     if (x.group === node!.key && x.category !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
+                    //     if (x.group === node!.key && x.diagramType !== FCDiagramType.WFGuideNode) childNNodes.push(x.key);
                     // });
 
                     // // 就一个点时候
@@ -446,8 +535,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 }
 
             }
-            if (node && node.wfType)
-                return { ...res, ...node, ...{ type: node!.wfType } };
+            if (node && node.type)
+                return { ...res, ...node, ...{ type: node!.type } };
             else
                 return { ...res, ...node };
         }

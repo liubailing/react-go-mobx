@@ -1,6 +1,6 @@
 import { observable, action } from "mobx";
 import TaskFlowChartStore, { TaskFlowChart, ActionNode, ActionNodeType, ITaskFlowChartRuntime, ITaskFlowChartStore } from "../TaskFlowChartStore";
-// import { FCNodeType, FCNodeExtendsType } from "../../components/FlowChart/FCEntities";
+// import { FCNodeType, FCNodeType } from "../../components/FlowChart/FCEntities";
 
 
 /**
@@ -71,29 +71,29 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
     onClickInitFlowChart = async (isDefault: boolean): Promise<void> => {
         //this.taskWorkflowStore.appendNode(ActionNodeType.ExtractData,{},pId);
         // let nodes = [
-        //     { key: 'Begin', label: '起始', wfType: FCNodeExtendsType.Start as string, group: '', isGroup: false },
+        //     { key: 'Begin', label: '起始', wfType: FCNodeType.Start as string, group: '', isGroup: false },
         //     { key: 'node1', label: '打开网页', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
         //     { key: 'test', label: '测试节点', wfType: FCNodeType.Navigate as string, group: '', isGroup: false },
 
         //     { key: 'cond', label: '条件', wfType: FCNodeType.Condition as string, group: '', isGroup: true },
-        //     { key: 'cond1', label: '分支1', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+        //     { key: 'cond1', label: '分支1', wfType: FCNodeType.Branch as string, group: 'cond', isGroup: true },
 
-        //     { key: 'open1', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond1', isGroup: false },
-        //     { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeExtendsType.WFGuideNode as string, group: 'cond1', isGroup: false },
-        //     { key: 'close1', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond1', isGroup: false },
+        //     { key: 'open1', label: '', wfType: FCNodeType.SubOpen as string, group: 'cond1', isGroup: false },
+        //     { key: 'guide1', label: '将要执行的流程拖放在此', wfType: FCNodeType.WFGuideNode as string, group: 'cond1', isGroup: false },
+        //     { key: 'close1', label: '', wfType: FCNodeType.SubClose as string, group: 'cond1', isGroup: false },
 
-        //     { key: 'cond2', label: '分支2', wfType: FCNodeExtendsType.Branch as string, group: 'cond', isGroup: true },
+        //     { key: 'cond2', label: '分支2', wfType: FCNodeType.Branch as string, group: 'cond', isGroup: true },
 
         //     { key: 'loop', label: '循环', wfType: FCNodeType.Loop as string, group: '', isGroup: true },
-        //     { key: 'open3', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'loop', isGroup: false },
+        //     { key: 'open3', label: '', wfType: FCNodeType.SubOpen as string, group: 'loop', isGroup: false },
         //     { key: 'node456', label: '循环网页', wfType: FCNodeType.Navigate as string, group: 'loop', isGroup: false },
-        //     { key: 'close3', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'loop', isGroup: false },
+        //     { key: 'close3', label: '', wfType: FCNodeType.SubClose as string, group: 'loop', isGroup: false },
 
-        //     { key: 'open2', label: '', wfType: FCNodeExtendsType.SubOpen as string, group: 'cond2', isGroup: false },
+        //     { key: 'open2', label: '', wfType: FCNodeType.SubOpen as string, group: 'cond2', isGroup: false },
         //     { key: 'data', label: '提取数据', wfType: FCNodeType.ExtractData as string, group: 'cond2', isGroup: false },
-        //     { key: 'close2', label: '', wfType: FCNodeExtendsType.SubClose as string, group: 'cond2', isGroup: false },
+        //     { key: 'close2', label: '', wfType: FCNodeType.SubClose as string, group: 'cond2', isGroup: false },
 
-        //     { key: 'End', label: '', wfType: FCNodeExtendsType.End as string, group: '', isGroup: false }
+        //     { key: 'End', label: '', wfType: FCNodeType.End as string, group: '', isGroup: false }
         // ];
         // let links = [
         //     { from: 'Begin', to: 'node1', group: '', isCondition: false },
@@ -119,8 +119,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
                     key: 'cond', type: ActionNodeType.Condition as string, childs: [
                         {
                             key: 'branch1-1', type: ActionNodeType.Branch as string, childs: [
-                                { key: 'data11-1', type: ActionNodeType.ExtractData as string },
-                                { key: 'data11-2', type: ActionNodeType.ExtractData as string }
+                                { key: 'data11-1', type: ActionNodeType.ExtractData as string }
                             ]
                         },
                         {

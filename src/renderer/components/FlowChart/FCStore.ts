@@ -2,7 +2,7 @@ import { observable, action } from "mobx";
 import go, { Diagram } from 'gojs';
 import { DiagramModel } from 'react-gojs';
 import { ITaskFlowChartRuntime } from '../../stores/TaskFlowChartStore';
-import { FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, NodeEvent, FCNodeType, FcNode, FCNodeExtendsType } from './FCEntities';
+import { FCNodeModel, FCLinkModel, FCDiagramType, NodeEventType, NodeEvent, FCNodeType, FcNode } from './FCEntities';
 
 const guideNodeCategories = [FCDiagramType.WFGuideStart, FCDiagramType.WFGuideEnd, FCDiagramType.WFGuideSubOpen, FCDiagramType.WFGuideSubClose, FCDiagramType.WFGuideNode];
 
@@ -11,7 +11,7 @@ const guideNodeCategories = [FCDiagramType.WFGuideStart, FCDiagramType.WFGuideEn
  */
 export class FlowChartNode {
     key: string = '';  // 对应一个activeID
-    type: string = ''; // 节点类型
+    type: string = '';   // 节点类型
 }
 
 /**
@@ -60,7 +60,7 @@ export class FlowChartStore {
             this.currKey = key;
             let node: FCNodeModel | undefined = this.model.nodeDataArray.find(x => x.key == key);
             if (node && node.key)
-                this.actionWorkflow.onClickNodeHandler({ key: node.key, type: node.wfType });
+                this.actionWorkflow.onClickNodeHandler({ key: node.key, type: node.type });
         }
     }
 
@@ -137,35 +137,30 @@ export class FlowChartStore {
 
 
     //得到一条线
-    private getLink = (from: string, to: string, group: string, isCondition: boolean = false): FCLinkModel => {
-        if (!from || from === to) return { from: '', to: '', group: '', isCondition: false };
-        return {
+    getFCLinkModel = (from: string, to: string, group: string, isCondition: boolean = false): FCLinkModel => {
+
+        if (!from || from === to) return { from: '', to: '', group: '' };
+        if (!group) group = "root";
+        let link: FCLinkModel = {
             from: from,
             to: to,
             group: group,
-            isCondition: isCondition,
-            category: isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink,
-            opacity: 0
+
         };
+
+        link.diagramType = isCondition ? FCDiagramType.WFGuideLink : FCDiagramType.WFLink;
+        link.category = link.diagramType;
+        return link;
     };
 
 
     /**
      * 得到一个节点
      */
-    getOneNode = (wfType: FCNodeType | FCNodeExtendsType, name: string, group: string = ''): FCNodeModel => {
+    getFCNodeModel = (wfType: FCNodeType | string, group: string = ''): FCNodeModel => {
         let fcNode = new FcNode(wfType);
-        return {
-            wfType: wfType,
-            group: group,
-            label: name || fcNode.name,
-
-            key: this.getRandomKey(),
-            category: fcNode.FCDiagramType,
-            isGroup: fcNode.isGroup,
-            hasChild: false,
-            opacity: 0,
-        };
+        if (!group) group = 'root';
+        return { ...fcNode.nodeModel, ...{ group: group } };
     };
 
     /**
@@ -211,12 +206,12 @@ export class FlowChartStore {
             return;
         }
 
-        if (ev.toNode.category === FCDiagramType.ConditionGroup) {
+        if (ev.toNode.diagramType === FCDiagramType.ConditionGroup) {
             console.log('条件组不支持拖放流程');
             return;
         }
 
-        if (ev.toNode.category === FCDiagramType.ConditionSwitch || ev.toNode.category === FCDiagramType.LoopGroup) {
+        if (ev.toNode.diagramType === FCDiagramType.ConditionSwitch || ev.toNode.diagramType === FCDiagramType.LoopGroup) {
             if (this.model.nodeDataArray.findIndex(x => x.group === ev.toNode!.key) > -1) {
                 console.log('条件分支,循环 只能支持一个流程');
                 return;
@@ -241,24 +236,23 @@ export class FlowChartStore {
 
         //得到该点的位置
         let oldlinkIndex = -1;
-        //要删除的线
-        //let oldlinkIndex: FCLinkModel;
+
         let link_Add: FCLinkModel[] = [];
-        let d = this.getDiagramDataByFCNodeType(FCNodeExtendsType.Branch, undefined, ev.toNode.group)
+        let d = this.getDiagramDataByFCNodeType(FCNodeType.Branch, ev.toNode.group)
         let node = d.nodeDataArray[0];
-        console.log(`addNodeBy_AddCondtionBranch_Handler`, d)
+        //console.log(`addNodeBy_AddCondtionBranch_Handler`, d)
 
         if (ev.eType === NodeEventType.AddNodeToBefore) {
             oldlinkIndex = this.model.linkDataArray.findIndex(x => x.to === ev.toNode!.key);
             if (oldlinkIndex < 0) {
                 //在最前面添加一分支
-                link_Add.push(this.getLink(node.key, ev.toNode!.key, ev.toNode!.group, true));
+                link_Add.push(this.getFCLinkModel(node.key, ev.toNode!.key, ev.toNode!.group, true));
             }
         } else if (ev.eType === NodeEventType.AddNodeToAfter) {
             oldlinkIndex = this.model.linkDataArray.findIndex(x => x.from === ev.toNode!.key);
             if (oldlinkIndex < 0) {
                 //在最后面添加一分支
-                link_Add.push(this.getLink(ev.toNode!.key, node.key, ev.toNode!.group, true));
+                link_Add.push(this.getFCLinkModel(ev.toNode!.key, node.key, ev.toNode!.group, true));
             }
         }
 
@@ -266,8 +260,8 @@ export class FlowChartStore {
             //找到原来的线
             let oldlink = this.model.linkDataArray[oldlinkIndex];
             link_Add = [
-                this.getLink(oldlink.from, node.key, ev.toNode!.group, true),
-                this.getLink(node.key, oldlink.to, ev.toNode!.group, true)
+                this.getFCLinkModel(oldlink.from, node.key, ev.toNode!.group, true),
+                this.getFCLinkModel(node.key, oldlink.to, ev.toNode!.group, true)
             ];
         }
 
@@ -308,7 +302,6 @@ export class FlowChartStore {
 
 
         let actNode: FCNodeModel | undefined = undefined;
-
         //检测数据完整、合理性， 
         switch (eType as NodeEventType) {
             case NodeEventType.DragFCNode2Node:
@@ -317,8 +310,9 @@ export class FlowChartStore {
                 if (!toNode.key) return _model;
                 if (!this.draggingNodeType) return _model;
                 //准备数据
-                let fc = new FcNode(this.draggingNodeType);
-                actNode = this.getOneNode(this.draggingNodeType, fc.name, toNode!.group);
+                // let fc = new FcNode(this.draggingNodeType);
+                // actNode = this.getFCNodeModel(this.draggingNodeType, fc.name, toNode!.group);
+                actNode = this.getFCNodeModel(this.draggingNodeType, toNode!.group);
                 break;
             case NodeEventType.DragFCNode2Link:
                 //检测数据完整、合理性，
@@ -327,8 +321,9 @@ export class FlowChartStore {
                 if (!this.draggingNodeType) return _model;
 
                 //准备数据
-                let fc1 = new FcNode(this.draggingNodeType);
-                actNode = this.getOneNode(this.draggingNodeType, fc1.name, toLink!.group);
+                // let fc1 = new FcNode(this.draggingNodeType);
+                // actNode = this.getOneNode(this.draggingNodeType, fc1.name, toLink!.group);
+                actNode = this.getFCNodeModel(this.draggingNodeType, toLink!.group);
                 break;
             case NodeEventType.DragNode2Link:
                 //检测数据完整、合理性，
@@ -337,7 +332,7 @@ export class FlowChartStore {
                 actNode = _model.nodeDataArray.find(x => x.key == this.currKey);
                 if (actNode == undefined || !actNode.key) return _model
                 if (actNode.key === toLink.from || actNode.key === toLink.to) return _model
-                if (actNode.category == FCDiagramType.ConditionSwitch) return _model;
+                if (actNode.diagramType == FCDiagramType.ConditionSwitch) return _model;
                 dragBeforeGroup = actNode.group;// 记录拖动前所在组
                 //准备数据
                 actNode.group = toLink.group;
@@ -366,15 +361,7 @@ export class FlowChartStore {
                 break;
         }
 
-        let d: DiagramModel<FCNodeModel, FCLinkModel> = { nodeDataArray: [], linkDataArray: [] };
-        //找到了线  新增两条线
-        if (actLink !== undefined && !!actLink.from) {
-            d.linkDataArray.push(this.getLink(fromNodeKey, actNode.key, actLink.group, isGuideLink));
-            d.linkDataArray.push(this.getLink(actNode.key, actLink.to, actLink.group, isGuideLink));
-        } else if (actLink == undefined) {
-            //找到了线  增加一条线
-            d.linkDataArray.push(this.getLink(fromNodeKey, actNode.key, actNode.group, isGuideLink));
-        }
+
 
 
         let delLinkIndexs: Set<number> = new Set();
@@ -394,6 +381,7 @@ export class FlowChartStore {
         }
 
 
+        let d: DiagramModel<FCNodeModel, FCLinkModel> = { nodeDataArray: [], linkDataArray: [] };
         //移出项 需要去检测是否需要 添加 提示节点 guide 的group
         let checkAddGuidGroups: Set<string> = new Set();
         //移入新 需要去检测是否需要 删除 提示节点 guide 的group
@@ -406,7 +394,7 @@ export class FlowChartStore {
             case NodeEventType.DragFCNode2Node:
             case NodeEventType.DragFCNode2Link:
                 // 1、处理新增该类型的点后 ，返回相应的点和线
-                let n = this.getDiagramDataByFCNodeType(actNode.wfType as FCNodeType, actNode, actNode.group);
+                let n = this.getDiagramDataByFCNodeType(actNode.type as FCNodeType, actNode.group, actNode);
                 d = {
                     nodeDataArray: [...d.nodeDataArray, ...n.nodeDataArray],
                     linkDataArray: [...d.linkDataArray, ...n.linkDataArray]
@@ -415,34 +403,12 @@ export class FlowChartStore {
                 // 2、移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
                 if (!!actNode.group) {
                     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
-                    if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                    if (groupNode && (groupNode.diagramType == FCDiagramType.LoopGroup || groupNode.diagramType == FCDiagramType.ConditionSwitch)) {
                         checkRemoveGuidGroups.add(actNode!.group);
 
                     }
                 }
 
-                // if (!!actNode.group) {
-                //     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
-                //     if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
-                //         // let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
-                //         // if (guideIndex > -1) {
-                //         //     let gKey = _model.nodeDataArray[guideIndex].key;
-                //         //     delNodeIndexs.add(guideIndex);//要删除的点
-                //         //     let flinkIndex = _model.linkDataArray.findIndex(x => x.from == gKey);                           
-                //         //     let tlinkIndex = _model.linkDataArray.findIndex(x => x.to == gKey);
-                //         //     delLinkIndexs.add(tlinkIndex);//要删除的线
-                //         //     delLinkIndexs.add(flinkIndex);//要删除的线
-
-
-                //         //     //要新增的线
-                //         //     let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubOpen)
-                //         //     let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubClose)
-                //         //     if(open) linksAdd.push(this.getLink(open.key,actNode!.key,actNode!.group));
-                //         //     if(close) linksAdd.push(this.getLink(actNode!.key,close.key,actNode!.group));
-
-                //         // }
-                //     }
-                // }
                 break;
             case NodeEventType.DragNode2Link:
 
@@ -456,7 +422,7 @@ export class FlowChartStore {
                     d = {
                         ...d,
                         linkDataArray: [...d.linkDataArray,
-                        this.getLink(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group)
+                        this.getFCLinkModel(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group)
                         ]
                     }
                 }
@@ -464,7 +430,7 @@ export class FlowChartStore {
                 // 2、移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
                 if (!!actNode.group) {
                     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
-                    if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
+                    if (groupNode && (groupNode.diagramType == FCDiagramType.LoopGroup || groupNode.diagramType == FCDiagramType.ConditionSwitch)) {
                         checkRemoveGuidGroups.add(actNode!.group);
 
                     }
@@ -473,7 +439,7 @@ export class FlowChartStore {
                 // 3、移出项 需要去检测是否需要 添加 提示节点 guide 的group                
                 if (!!dragBeforeGroup) {
                     let dragGroupNode = _model.nodeDataArray.find(x => x.key == dragBeforeGroup);
-                    if (dragGroupNode && (dragGroupNode.category == FCDiagramType.LoopGroup || dragGroupNode.category == FCDiagramType.ConditionSwitch)) {
+                    if (dragGroupNode && (dragGroupNode.diagramType == FCDiagramType.LoopGroup || dragGroupNode.diagramType == FCDiagramType.ConditionSwitch)) {
                         checkAddGuidGroups.add(dragBeforeGroup);
 
                     }
@@ -484,8 +450,8 @@ export class FlowChartStore {
                 // 2、 移入新 需要去检测是否需要 删除 提示节点 guide 的group判断要不要删除'提示'点
                 // if (!!actNode.group) {
                 //     let groupNode = _model.nodeDataArray.find(x => x.key == actNode!.group);
-                //     if (groupNode && (groupNode.category == FCDiagramType.LoopGroup || groupNode.category == FCDiagramType.ConditionSwitch)) {
-                //         // let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideNode);
+                //     if (groupNode && (groupNode.diagramType == FCDiagramType.LoopGroup || groupNode.diagramType == FCDiagramType.ConditionSwitch)) {
+                //         // let guideIndex = _model.nodeDataArray.findIndex(x => x.group == actNode!.group && x.diagramType == FCDiagramType.WFGuideNode);
                 //         // if (guideIndex > -1) {
                 //         //     let gKey = _model.nodeDataArray[guideIndex].key;
                 //         //     delNodeIndexs.add(guideIndex);//要删除的点
@@ -496,8 +462,8 @@ export class FlowChartStore {
 
 
                 //         //     //要新增的线
-                //         //     let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubOpen)
-                //         //     let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.category == FCDiagramType.WFGuideSubClose)
+                //         //     let open:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.diagramType == FCDiagramType.WFGuideSubOpen)
+                //         //     let close:FCNodeModel|undefined =  _model.nodeDataArray.find(x => x.group == actNode!.group && x.diagramType == FCDiagramType.WFGuideSubClose)
                 //         //     if(open) linksAdd.push(this.getLink(open.key,actNode!.key,actNode!.group));
                 //         //     if(close) linksAdd.push(this.getLink(actNode!.key,close.key,actNode!.group));
 
@@ -511,12 +477,12 @@ export class FlowChartStore {
 
                 //     let guideTypes: FCDiagramType[] = [FCDiagramType.WFGuideSubOpen, FCDiagramType.WFGuideSubClose, FCDiagramType.WFGuideNode];
                 //     let dragGroupNode = _model.nodeDataArray.find(x => x.key == dragBeforeGroup);
-                //     if (dragGroupNode && (dragGroupNode.category == FCDiagramType.LoopGroup || dragGroupNode.category == FCDiagramType.ConditionSwitch)) {
+                //     if (dragGroupNode && (dragGroupNode.diagramType == FCDiagramType.LoopGroup || dragGroupNode.diagramType == FCDiagramType.ConditionSwitch)) {
 
                 //         let addGuide = true;
                 //         for (let index = 0; index < _model.nodeDataArray.length; index++) {
                 //             const x = _model.nodeDataArray[index];
-                //             if (x.category && x.group == dragBeforeGroup && !guideTypes.includes(x.category) && x.key!==actNode.key) //不是向导点且除了操作点。
+                //             if (x.diagramType && x.group == dragBeforeGroup && !guideTypes.includes(x.diagramType) && x.key!==actNode.key) //不是向导点且除了操作点。
                 //             {
                 //                 debugger;
                 //                 addGuide = false;
@@ -526,7 +492,7 @@ export class FlowChartStore {
 
                 //         // 追加一个指引node，且改变线的指引（用新增的点替换移出的）
                 //         if (addGuide) {
-                //             let fc = new FcNode(FCNodeExtendsType.WFGuideNode);
+                //             let fc = new FcNode(FCNodeType.WFGuideNode);
                 //             let guideNode = this.getOneNode(fc.fcType, fc.name, dragBeforeGroup);
                 //             _model.linkDataArray[flinkIndex].from = guideNode.key; // 替换移除的点
                 //             _model.linkDataArray[tlinkIndex].to = guideNode.key; // 替换移除的点
@@ -563,6 +529,14 @@ export class FlowChartStore {
         }
 
 
+        //找到了线  新增两条线
+        if (actLink !== undefined && !!actLink.from) {
+            d.linkDataArray.push(this.getFCLinkModel(fromNodeKey, actNode.key, actLink.group, isGuideLink));
+            d.linkDataArray.push(this.getFCLinkModel(actNode.key, actLink.to, actLink.group, isGuideLink));
+        } else if (actLink == undefined) {
+            //找到了线  增加一条线
+            d.linkDataArray.push(this.getFCLinkModel(fromNodeKey, actNode.key, actNode.group, isGuideLink));
+        }
 
 
 
@@ -598,7 +572,7 @@ export class FlowChartStore {
                 let addGuide = true;
                 for (let index = 0; index < _model.nodeDataArray.length; index++) {
                     const x = _model.nodeDataArray[index];
-                    if (x.group == groupKey && x.category && !guideTypes.includes(x.category)) //不是向导点且除了操作点。
+                    if (x.group == groupKey && x.diagramType && !guideTypes.includes(x.diagramType)) //不是向导点且除了操作点。
                     {
                         addGuide = false;
                         break;
@@ -606,15 +580,16 @@ export class FlowChartStore {
                 }
 
                 if (addGuide) {
-                    let fc = new FcNode(FCNodeExtendsType.WFGuideNode);
+                    // let fc = new FcNode(FCNodeType.WFGuideNode);
                     let flinkIndex = _model.linkDataArray.findIndex(x => x.group == groupKey);
-                    let guideNode = this.getOneNode(fc.fcType, fc.name, dragBeforeGroup);//要新增的点移除的点
+                    // let guideNode = this.getOneNode(fc.fcType, fc.name, dragBeforeGroup);//要新增的点移除的点
+                    let guideNode = this.getFCNodeModel(FCNodeType.WFGuideNode, dragBeforeGroup);
 
                     newNodes.push(guideNode);
                     if (flinkIndex > -1) {
                         delLinkIndexs.add(flinkIndex);//要删除的线                  
-                        newLinks.push(this.getLink(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
-                        newLinks.push(this.getLink(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
+                        newLinks.push(this.getFCLinkModel(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
+                        newLinks.push(this.getFCLinkModel(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
                     }
                 }
 
@@ -623,7 +598,7 @@ export class FlowChartStore {
             //删除提示 node
             checkRemoveGuidGroups.forEach(groupKey => {
                 //let groupNode = _model.nodeDataArray.find(x => x.key == groupKey);
-                let guideIndex = _model.nodeDataArray.findIndex(x => x.group == groupKey && x.category == FCDiagramType.WFGuideNode);
+                let guideIndex = _model.nodeDataArray.findIndex(x => x.group == groupKey && x.diagramType == FCDiagramType.WFGuideNode);
                 if (guideIndex > -1) {
                     let gKey = _model.nodeDataArray[guideIndex].key;
                     delNodeIndexs.add(guideIndex);//要删除的点
@@ -632,7 +607,7 @@ export class FlowChartStore {
                     delLinkIndexs.add(tlinkIndex);//要删除的线
                     delLinkIndexs.add(flinkIndex);//要删除的线
                     if (flinkIndex > -1 && tlinkIndex > -1)
-                        newLinks.push(this.getLink(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));
+                        newLinks.push(this.getFCLinkModel(_model.linkDataArray[tlinkIndex].from, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));
                 }
 
             });
@@ -671,18 +646,19 @@ export class FlowChartStore {
      *  @param node
      *  @param group
      */
-    private getDiagramDataByFCNodeType = (fcType: FCNodeType | FCNodeExtendsType, node?: FCNodeModel, group?: string): DiagramModel<FCNodeModel, FCLinkModel> => {
-        let d: DiagramModel<FCNodeModel, FCLinkModel> = { nodeDataArray: [], linkDataArray: [] };
+    private getDiagramDataByFCNodeType = (fcType: FCNodeType, groupKey: string, node?: FCNodeModel): DiagramModel<FCNodeModel, FCLinkModel> => {
+        // debugger;
 
+        let d: DiagramModel<FCNodeModel, FCLinkModel> = { nodeDataArray: [], linkDataArray: [] };
         let actNode: FCNodeModel | undefined = undefined;
 
-        if (!group) group = '';
         if (node && node.key) {
             actNode = node;
         }
         else {
-            let fc = new FcNode(fcType);
-            actNode = this.getOneNode(fcType, fc.name, group);
+            //let fc = new FcNode(fcType);
+            //actNode = this.getOneNode(fcType, fc.name, group);
+            actNode = this.getFCNodeModel(fcType, groupKey);
         }
 
         if (!actNode) return d;
@@ -690,32 +666,36 @@ export class FlowChartStore {
         switch (fcType) {
             case FCNodeType.Condition:
                 actNode.isGroup = true;
-                group = actNode.key;
-                let branch1 = this.getDiagramDataByFCNodeType(FCNodeExtendsType.Branch, undefined, group);
-                let branch2 = this.getDiagramDataByFCNodeType(FCNodeExtendsType.Branch, undefined, group);
+                groupKey = actNode.key;
+                let branch1 = this.getDiagramDataByFCNodeType(FCNodeType.Branch, groupKey);
+                let branch2 = this.getDiagramDataByFCNodeType(FCNodeType.Branch, groupKey);
                 d = {
                     nodeDataArray: [actNode, ...branch1.nodeDataArray, ...branch2.nodeDataArray],
                     linkDataArray: [
                         ...branch1.linkDataArray,
                         ...branch2.linkDataArray,
-                        this.getLink(branch1.nodeDataArray[0].key, branch2.nodeDataArray[0].key, group, true)
+                        this.getFCLinkModel(branch1.nodeDataArray[0].key, branch2.nodeDataArray[0].key, groupKey, true)
                     ]
                 }
                 break;
             case FCNodeType.Loop:
-            case FCNodeExtendsType.Branch:
+            case FCNodeType.Branch:
                 actNode.isGroup = true;
-                group = actNode.key;
-                let fc = new FcNode(FCNodeExtendsType.SubOpen);
-                let open = this.getOneNode(fc.fcType, fc.name, group);
-                fc = new FcNode(FCNodeExtendsType.SubClose);
-                let close = this.getOneNode(fc.fcType, fc.name, group);
-                fc = new FcNode(FCNodeExtendsType.WFGuideNode);
-                let guide = this.getOneNode(fc.fcType, fc.name, group);
+                groupKey = actNode.key;
+                // let fc = new FcNode(FCNodeType.SubOpen);
+                // let open = this.getOneNode(fc.fcType, fc.name, group);
+                // fc = new FcNode(FCNodeType.SubClose);
+                // let close = this.getOneNode(fc.fcType, fc.name, group);
+                // fc = new FcNode(FCNodeType.WFGuideNode);
+                // let guide = this.getOneNode(fc.fcType, fc.name, group);
+
+                let open = this.getFCNodeModel(FCNodeType.SubOpen, groupKey);
+                let close = this.getFCNodeModel(FCNodeType.SubClose, groupKey);
+                let guide = this.getFCNodeModel(FCNodeType.WFGuideNode, groupKey);
 
                 d = {
                     nodeDataArray: [actNode, open, guide, close],
-                    linkDataArray: [this.getLink(open.key, guide.key, group), this.getLink(guide.key, close.key, group)]
+                    linkDataArray: [this.getFCLinkModel(open.key, guide.key, groupKey), this.getFCLinkModel(guide.key, close.key, groupKey)]
                 }
                 break;
             default:
@@ -773,7 +753,7 @@ export class FlowChartStore {
             addLinks.push(newLink);
         }
 
-        if (curNode.category && (curNode.category === FCDiagramType.LoopGroup || curNode.category === FCDiagramType.ConditionGroup || curNode.category === FCDiagramType.ConditionSwitch)) {
+        if (curNode.diagramType && (curNode.diagramType === FCDiagramType.LoopGroup || curNode.diagramType === FCDiagramType.ConditionGroup || curNode.diagramType === FCDiagramType.ConditionSwitch)) {
             //5、如果是组，则需要删除组内的所有元素
             let delKeys: Set<string> = new Set<string>();
             delKeys.add(curNode.key);
@@ -843,7 +823,7 @@ export class FlowChartStore {
          */
         if (!!curNode.group) {
             let groupNode = this.getFCNode(curNode.group);
-            if (groupNode && groupNode.category && (groupNode.category === FCDiagramType.LoopGroup || groupNode.category === FCDiagramType.ConditionSwitch))
+            if (groupNode && groupNode.diagramType && (groupNode.diagramType === FCDiagramType.LoopGroup || groupNode.diagramType === FCDiagramType.ConditionSwitch))
                 checkAddGuidGroups.add(groupNode.key);
         }
         if (checkAddGuidGroups.size > 0) {
@@ -854,15 +834,15 @@ export class FlowChartStore {
             //新增提示 node
             checkAddGuidGroups.forEach(groupKey => {
 
-                let fc = new FcNode(FCNodeExtendsType.WFGuideNode);
+                // let fc = new FcNode(FCNodeType.WFGuideNode);
                 let flinkIndex = _model.linkDataArray.findIndex(x => x.group == groupKey);
-                let guideNode = this.getOneNode(fc.fcType, fc.name, groupKey);//要新增的点
-
+                // let guideNode = this.getOneNode(fc.fcType, fc.name, groupKey);//要新增的点
+                let guideNode = this.getFCNodeModel(FCNodeType.WFGuideNode, groupKey);//要新增的点
                 newNodes.push(guideNode);
                 if (flinkIndex > -1) {
                     delLinkIndexs.add(flinkIndex);//要删除的线                  
-                    newLinks.push(this.getLink(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
-                    newLinks.push(this.getLink(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
+                    newLinks.push(this.getFCLinkModel(_model.linkDataArray[flinkIndex].from, guideNode.key, _model.linkDataArray[flinkIndex].group));//新增的线
+                    newLinks.push(this.getFCLinkModel(guideNode.key, _model.linkDataArray[flinkIndex].to, _model.linkDataArray[flinkIndex].group));//新增的线
                 }
 
             });
@@ -919,7 +899,7 @@ export class FlowChartStore {
         let firstLink = this.getFirstLink(group);
         if (firstLink) {
             //确定这点不是 向导点
-            let fNode = this.model.nodeDataArray.find(x => x.key == firstLink!.to && x.category && !guideNodeCategories.includes(x.category));
+            let fNode = this.model.nodeDataArray.find(x => x.key == firstLink!.to && x.diagramType && !guideNodeCategories.includes(x.diagramType));
             if (fNode && fNode.key) return fNode.key;
         }
 
@@ -934,7 +914,7 @@ export class FlowChartStore {
         let lastLink = this.getLastLink(group);
         if (lastLink) {
             //确定这点不是 向导点
-            let lNode = this.model.nodeDataArray.find(x => x.key == lastLink!.from && x.category && !guideNodeCategories.includes(x.category));
+            let lNode = this.model.nodeDataArray.find(x => x.key == lastLink!.from && x.diagramType && !guideNodeCategories.includes(x.diagramType));
             if (lNode && lNode.key) return lNode.key;
         }
 
@@ -945,9 +925,9 @@ export class FlowChartStore {
      * 得到第一条线
      */
     getFirstLink = (group: string): FCLinkModel | undefined => {
-        if (!group || group == 'root') group = '';
+        //if (!group || group == 'root') group = '';
         //找到起始节点
-        let startNode = this.model.nodeDataArray.find(x => x.group == group && (x.category == FCDiagramType.WFGuideStart || x.category == FCDiagramType.WFGuideSubOpen));
+        let startNode = this.model.nodeDataArray.find(x => x.group == group && (x.diagramType == FCDiagramType.WFGuideStart || x.diagramType == FCDiagramType.WFGuideSubOpen));
 
         if (startNode && startNode.key) {
             //找到第一条
@@ -964,9 +944,9 @@ export class FlowChartStore {
      * 得到最后条线
      */
     getLastLink = (group: string): FCLinkModel | undefined => {
-        if (!group || group == 'root') group = '';
+        //if (!group) group = '';
         // 找到最后节点
-        let endNode = this.model.nodeDataArray.find(x => x.group == group && (x.category == FCDiagramType.WFGuideEnd || x.category == FCDiagramType.WFGuideSubClose));
+        let endNode = this.model.nodeDataArray.find(x => x.group == group && (x.diagramType == FCDiagramType.WFGuideEnd || x.diagramType == FCDiagramType.WFGuideSubClose));
 
         if (endNode && endNode.key) {
             // 找到最后线
@@ -986,7 +966,7 @@ export class FlowChartStore {
     getFCNode = (key: string): FCNodeModel | undefined => {
         if (!!key) {
             //确定这点不是 向导点
-            let fNode = this.model.nodeDataArray.find(x => x.key == key && x.category && !guideNodeCategories.includes(x.category));
+            let fNode = this.model.nodeDataArray.find(x => x.key == key && x.diagramType && !guideNodeCategories.includes(x.diagramType));
             if (fNode && fNode.key) return fNode;
         }
         return undefined
@@ -1011,19 +991,19 @@ export class FlowChartStore {
 
 
 
-    /**
-     * 得到一个Key
-     */
-    private getRandomKey = (len: number = 8): string => {
-        len = len < 1 ? 8 : len;
-        let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
-        let maxPos = $chars.length;
-        let pwd = '';
-        for (let i = 0; i < len; i++) {
-            pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
-        }
-        return pwd;
-    };
+    // /**
+    //  * 得到一个Key
+    //  */
+    // private getRandomKey = (len: number = 8): string => {
+    //     len = len < 1 ? 8 : len;
+    //     let $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'; /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
+    //     let maxPos = $chars.length;
+    //     let pwd = '';
+    //     for (let i = 0; i < len; i++) {
+    //         pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+    //     }
+    //     return pwd;
+    // };
 
 
 

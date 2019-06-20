@@ -797,7 +797,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             );
         };
 
-        const drawStart_End = () => {
+        const drawGuidNodes = () => {
             /**
              * 起始点
              */
@@ -938,7 +938,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
         DiagramSetting.test ? drawGroupCond() : drawGroupCond1();
         drawGroupCondBranch();
         drawGroupLoop();
-        drawStart_End();
+        drawGuidNodes();
 
         //notice whenever the selection may have changed
         myDiagram.addDiagramListener('ChangedSelection', function (_e: go.DiagramEvent) {
