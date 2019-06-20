@@ -158,7 +158,7 @@ export class FcNode {
             key: this.getRandomKey(),
             diagramType: this.FCDiagramType,
             isGroup: this.isGroup,
-            hasChild: false,
+            // hasChild: false,
             opacity: 0,
         };
         n.category = n.diagramType;
@@ -178,8 +178,8 @@ export interface FCNodeModel extends BaseNodeModel {
     type: string; // 节点  类型  FCNodeType
     isGroup: boolean; // 是否是组  
 
-    hasChild?: boolean; // 是否有子步骤    当 isGroup == true ,必须给 hasChild赋值
-    data?: any; // 对应的配置属性  交互使用的数据
+    // hasChild?: boolean; // 是否有子步骤    当 isGroup == true ,必须给 hasChild赋值
+    // data?: any; // 对应的配置属性  交互使用的数据
 
     //以下属性不用管
     diagramType?: FCDiagramType; // 图形分类      对应 FCDiagramType     FCNode | LoopGroup | ConditionGroup | Condition | Start | End

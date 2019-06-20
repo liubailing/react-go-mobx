@@ -207,13 +207,13 @@ export class FlowChartStore {
         }
 
         if (ev.toNode.diagramType === FCDiagramType.ConditionGroup) {
-            console.log('条件组不支持拖放流程');
+            //console.log('条件组不支持拖放流程');
             return;
         }
 
         if (ev.toNode.diagramType === FCDiagramType.ConditionSwitch || ev.toNode.diagramType === FCDiagramType.LoopGroup) {
             if (this.model.nodeDataArray.findIndex(x => x.group === ev.toNode!.key) > -1) {
-                console.log('条件分支,循环 只能支持一个流程');
+                //console.log('条件分支,循环 只能支持一个流程');
                 return;
             }
         }

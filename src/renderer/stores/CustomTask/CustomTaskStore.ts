@@ -114,7 +114,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
         let node: ActionNode = {
             key: 'root', type: 'root', childKeys: [], childs: [
-                { key: 'txt', type: ActionNodeType.EnterText as string },
+                { key: 'node1', type: ActionNodeType.EnterText as string, data: { tip: '这是一个node1存值' } },
                 {
                     key: 'cond', type: ActionNodeType.Condition as string, childs: [
                         {
@@ -136,7 +136,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
                 {
                     key: 'loop', type: ActionNodeType.Loop as string, parentKey: "root", childs: [
                         { key: 'data1', type: ActionNodeType.ExtractData as string },
-                    ]
+                    ], data: { tip: '这是一个loop存值' }
                 },
                 { key: 'data', type: ActionNodeType.ExtractData as string, parentKey: "root" }
 
@@ -197,24 +197,26 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
     //得到第一个节点
     @action
-    onClickSaveData = async (): Promise<void> => {
+    onClickSaveData = async (key: string): Promise<void> => {
         let node = this.taskWorkflowStore.getFirstNode();
         if (node.key) {
-            this.taskWorkflowStore.saveNodeData(node.key, {
-                data: "这是刚刚刚存放的一数据",
-            })
+
         }
+
+        this.taskWorkflowStore.saveNodeData(key || node.key, {
+            tip: "这是刚刚刚存放的一数据" + (new Date).toString(),
+        })
+
         this.logs(`key:${node.key},type:${node.type}`);
     }
 
     //得到第一个节点
     @action
-    onClickGetData = async (): Promise<void> => {
+    onClickGetData = async (key: string): Promise<void> => {
         let node = this.taskWorkflowStore.getFirstNode()
-        if (node.key) {
-            let node1 = this.taskWorkflowStore.getNodeByKey(node.key);
-            alert(node1.data.data);
-        }
+
+        let node1 = this.taskWorkflowStore.getNodeByKey(key || node.key);
+        alert(node1.data.tip);
     }
 
     @action

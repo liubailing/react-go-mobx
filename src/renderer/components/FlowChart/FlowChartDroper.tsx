@@ -98,7 +98,7 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                     }
 
                     event.target.style.backgroundColor = DiagramColors.diagram_drag_bg;
-                    console.log('-------------------onDragEnter ----------------');
+                    //console.log('-------------------onDragEnter ----------------');
                 }}
                 onDragLeave={(event: any) => {
                     if (!this.props.store.draggingNodeType) {
@@ -106,7 +106,7 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                         return;
                     }
                     event.target.style.backgroundColor = DiagramColors.diagram_bg;
-                    console.log('-------------------onDragLeave ----------------');
+                    //console.log('-------------------onDragLeave ----------------');
                 }}
                 // onMouseMove={(event: any) => {
                 //     event.preventDefault();
@@ -148,10 +148,10 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
 
                                     let btn = node.findObject('btn_add');
                                     if (btn) {
-                                        btn.fill =DiagramColors.link_highlight;
+                                        btn.fill = DiagramColors.link_highlight;
                                     }
 
-                                    node.diagram.commitTransaction('Highlighted');                                    
+                                    node.diagram.commitTransaction('Highlighted');
 
                                     oldLink = curnode;
                                     ClearDragerWithout('l');
@@ -165,13 +165,13 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                                     ClearDragerWithout('g');
                                 }
                             } else if (curnode instanceof go.Node) {
-                             
+
                                 let node = (curnode as any).part;
                                 if (node.category === FCDiagramType.FCNode) {
                                     node.diagram.startTransaction('Change color');
 
                                     let nbody = node.findObject('node_Body');
-                                    if (nbody) nbody.fill =DiagramColors.highlight;
+                                    if (nbody) nbody.fill = DiagramColors.highlight;
 
                                     node.diagram.commitTransaction('Change color');
                                     oldNode = curnode;
@@ -209,21 +209,21 @@ class WFDroper extends Component<WFDroperProps, WFDroperState> {
                         var point = myDiagram.transformViewToDoc(new go.Point(mx, my));
                         var curnode: any = myDiagram.findPartAt(point, true);
 
-                     
+
                         if (curnode && curnode.part) {
                             if (curnode instanceof go.Link) {
                                 let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Link, toLink: curnode.part!.data as FCLinkModel }
                                 //this.props.store.addNodeAfterDropLinkHandler(ev);
                                 this.props.store.addNodeBy_DragFCNode2Link_Handler(ev);
-                                
 
-                                console.log(' wfDroper  on Link')
+
+                                //console.log(' wfDroper  on Link')
                             } else if (curnode instanceof go.Group) {
-                                console.log(' wfDroper Group ');
+                                //console.log(' wfDroper Group ');
                             } else if (curnode instanceof go.Node) {
                                 let ev: NodeEvent = { eType: NodeEventType.DragFCNode2Node, toNode: curnode.part!.data as FCNodeModel }
                                 this.props.store.addNodeBy_DragFCNode2Node_Handler(ev);
-                                console.log('wfDroper Node');
+                                //console.log('wfDroper Node');
                             } else {
                             }
                         }

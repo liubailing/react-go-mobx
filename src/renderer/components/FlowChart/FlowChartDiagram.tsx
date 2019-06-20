@@ -1235,6 +1235,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             // console.log('wfDroper Node');
         } else {
         }
+        debugger;
         this.props.store.onDragEndFCNodeHandler();
 
     }

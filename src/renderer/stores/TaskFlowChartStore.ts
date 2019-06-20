@@ -384,8 +384,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      */
     @action
     getAll(): ActionNode {
-        debugger;
-        let keys = this.store.getFCNodeKeysByGroup("root");
+        let keys = this.store.getFCNodeKeysByGroup('root');
         let res = { key: 'root', type: 'root', parentKey: '', childKeys: keys, childs: this.getFCNodes(keys) } as ActionNode;
         return res;
     }
@@ -476,7 +475,8 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * 得到第一个节点
      */
     getFirstNode(parentId?: string): ActionNode {
-        if (!parentId) parentId = '';
+
+        if (!parentId) parentId = 'root';
 
         let n = this.store.getFirstFCNodeKey(parentId);
         if (!!n) {
@@ -512,7 +512,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             if (!!node) {
 
                 if (!!node.group) res.parentKey = node.group;
-                else res.parentKey = "root";
+                else res.parentKey = 'root';
 
                 if (node.diagramType && guideNodeGRoupCategories.includes(node.diagramType)) {
                     if (node.diagramType === FCDiagramType.ConditionGroup)
