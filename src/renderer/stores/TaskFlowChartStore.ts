@@ -2,10 +2,7 @@ import { observable, action } from "mobx";
 import { FlowChartStore, FlowChartNode, IFlowChartStore } from '../components/FlowChart/FCStore';
 import { FCNodeModel, FCLinkModel, FCDiagramType, FCNodeType, getFCDiagramType, NodeEventType, NodeEvent } from '../components/FlowChart/FCEntities';
 import { DiagramModel } from 'react-gojs';
-// import { Diagram } from 'gojs';
-// import { DiagramSetting } from '../components/FlowChart/FCSettings';
-
-
+//import GlobalManager, { GlobalVariableName } from "../../shared/utils/globalManager";
 
 const guideNodeGRoupCategories = [FCDiagramType.LoopGroup, FCDiagramType.ConditionSwitch, FCDiagramType.ConditionGroup];
 
@@ -47,6 +44,13 @@ export interface ITaskFlowChartRuntime extends IFlowChartStore { }
  */
 export interface ITaskFlowChartStore {
 
+    /***
+     * 在节点上保存 设置信息
+     *  @param key :  keyId
+     *  @param data : any  对应的配置信息
+     */
+    saveNodeData(key: string, data: any): boolean;
+
     /**
      * 得到第一个节点
      */
@@ -80,13 +84,6 @@ export interface ITaskFlowChartStore {
      */
     getNodesByType(type: string): ActionNode[];
 
-    /***
-     * 在节点上保存 设置信息
-     *  @param key :  keyId
-     *  @param data : any  对应的配置信息
-     */
-    saveNodeData(key: string, data: any): boolean;
-
     /**
     * 追加步骤
     * @param type 目标节点类型
@@ -94,7 +91,7 @@ export interface ITaskFlowChartStore {
     * @param parent 父节点
     * @param selected 是否选中
     */
-    appendNode(type: string, data?: any, parent?: string, selected?: boolean): string;
+    appendNode(type: string, data?: any, parent?: string): string;
 
 
     /**
@@ -104,7 +101,7 @@ export interface ITaskFlowChartStore {
      * @param parent 
      * @param selected 
      */
-    appendNodeToNode(type: string, nodeKey: string, _data?: any, _selected?: boolean): string;
+    appendNodeToNode(type: string, nodeKey: string, _data?: any): string;
 
     /**
      * 删除某一节点
@@ -135,11 +132,32 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     @observable private store: TaskFlowChart;
 
     @observable private storeData = {};
+
+    private taskId: string = '';
     // @observable private tempData:any={};
-    constructor(props: TaskFlowChart) {
+    constructor(props: TaskFlowChart, taskId: string) {
         this.store = props;
+        this.taskId = taskId;
     }
 
+
+    /**
+     * 保存某一个节点的 data 数据
+     * @param key 
+     * @param data 
+     */
+    @action
+    saveNodeData(key: string, data: any) {
+
+        this.storeData[key] = data;
+
+        if (this.taskId) {
+            // GlobalManager.setGlobalValueRemote(GlobalVariableName.Workflow, this.taskId, this.getAll());
+        }
+
+        return true
+
+    }
 
 
     //初始化数据
@@ -192,10 +210,6 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
                 default:
                     break
             }
-
-
-
-
 
             this.storeData[x.key] = x.data;
         })
@@ -255,29 +269,6 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         return { ...n, ...{ group: parentkey } };
     }
 
-    // private getFCNodeModel(fcType: string): FCNodeModel {
-    //     let node = { key: 'Begin', label: '', type: '', group: '', isGroup: false };
-
-    //     switch (fcType) {
-    //         case ActionNodeType.Branch:
-    //             node.type = FCDiagramType.ConditionSwitch;
-    //             break;
-    //         case ActionNodeType.Loop:
-    //             node.type = FCDiagramType.LoopGroup;
-    //             break;
-    //         case ActionNodeType.Condition:
-    //             node.type = FCDiagramType.ConditionGroup;
-    //             break;
-    //         default:
-    //             node.type = FCDiagramType.FCNode;
-    //             break;
-    //     }
-
-    //     return node;
-    // }
-
-
-
     /**
     * 初始化
     * @param node 
@@ -331,7 +322,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * @param selected 
      */
     @action
-    appendNode(type: string, data?: any, group?: string, _selected?: boolean): string {
+    appendNode(type: string, data?: any, group?: string): string {
         if (!group) group = 'root';
         //得到最后一条线
         let lastLink = this.store.getLastLink(group);
@@ -363,7 +354,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
      * @param selected 
      */
     @action
-    appendNodeToNode(type: string, nodeKey: string, _data?: any, _selected?: boolean): string {
+    appendNodeToNode(type: string, nodeKey: string, _data?: any): string {
 
         //得到点
         let node = this.store.getFCNode(nodeKey);
@@ -376,7 +367,9 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             this.store.addNodeBy_DragFCNode2Node_Handler(ev);
 
             //返回点
-            return this.store.getNodeKeyByFromKey(nodeKey);
+            let key = this.store.getNodeKeyByFromKey(nodeKey);
+
+            return key
         }
 
         //返回追加的key
@@ -412,30 +405,6 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
 
         return a;
     }
-
-
-    /**
-     * 保存某一个节点的 data 数据
-     * @param key 
-     * @param data 
-     */
-    @action
-    saveNodeData(key: string, data: any) {
-        // let node: FCNodeModel | undefined = this.store.model.nodeDataArray.find(x => x.key == key);
-        // if (node) {
-        //     node.data = data;
-        //     // this.store.model = {
-        //     //     ...this.store.model,
-        //     //     nodeDataArray: [...this.store.model.nodeDataArray, node]
-        //     // }
-        // }
-        this.storeData[key] = data;
-        //this.tempData[key]= data;
-        return true
-
-    }
-
-
 
     /**
      * 得到某一节点
@@ -499,15 +468,15 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
         this.store.model = this.store.deleteNodeByKey({ ...this.store.model }, key);
     }
 
-
     /**
     * 设置选中
     */
+    @action
     setSetlectedBykey(key: string): void {
+        this.store.currKey = key;
         this.store.diagram.select(this.store.diagram.findNodeForKey(key));
         //this.store.diagram.sect
     }
-
 
     /**
      * 
@@ -559,7 +528,5 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
     }
 
 }
-
-
 
 export default TaskFlowChartStore;

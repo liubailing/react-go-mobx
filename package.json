@@ -124,7 +124,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "rmm": "rd ./node_modules /s/q",
-    "copy": "xcopy  D:\\myWork\\react-go-mobx\\src\\renderer\\stores\\TaskFlowChartStore.ts  D:\\skWork\\octopus_client_atom\\src\\renderer\\stores\\TaskFlowChartStore.ts /y && xcopy D:\\myWork\\react-go-mobx\\src\\renderer\\components\\FlowChart D:\\skWork\\octopus_client_atom\\src\\renderer\\components\\FlowChart /e/y"
+    "copy": "xcopy D:\\myWork\\react-go-mobx\\src\\renderer\\components\\FlowChart D:\\skWork\\octopus_client_atom\\src\\renderer\\components\\FlowChart /e/y",
+    "copy1": "xcopy D:\\myWork\\react-go-mobx\\src\\renderer\\stores\\TaskFlowChartStore.ts  D:\\skWork\\octopus_client_atom\\src\\renderer\\stores\\TaskFlowChartStore.ts /y &&"
   },
   "eslintConfig": {
     "extends": "react-app"

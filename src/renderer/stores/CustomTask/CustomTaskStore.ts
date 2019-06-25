@@ -39,7 +39,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
     constructor(_taskId?: string) {
         this.taskFlowChart = new TaskFlowChart(this);
-        this.taskWorkflowStore = new TaskFlowChartStore(this.taskFlowChart);
+        this.taskWorkflowStore = new TaskFlowChartStore(this.taskFlowChart, '');
     }
 
 
