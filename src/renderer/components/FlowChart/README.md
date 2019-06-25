@@ -1,47 +1,8 @@
-import { observable, action } from "mobx";
-import TaskFlowChartStore, { TaskFlowChart, ActionNode, ActionNodeType, ITaskFlowChartRuntime, ITaskFlowChartStore } from "../TaskFlowChartStore";
-// import { FCNodeType, FCNodeType } from "../../components/FlowChart/FCEntities";
+[在线示例](http://47.110.49.33:3088/) 
 
+# 参考代码 
 
-/**
- * @class 自定义模式业务
- */
-export class CustomTaskStore implements ITaskFlowChartRuntime {
-
-
-    //点击流程图上节点
-    @action
-    onClickNodeHandler = async (_current: ActionNode): Promise<void> => {
-        let n = this.taskWorkflowStore.getNodeByKey(_current.key);
-        console.log('---onClickNodeHandler----', n);
-        this.logs(`点击了:${n.key}`);
-    }
-
-    //删除流程图上的节点
-    @action
-    onDeleteNodeHander = async (_current: ActionNode): Promise<void> => {
-    }
-
-
-    taskId: string = '';
-    @observable currKey: string = '';
-
-    @observable curCount: number = 0;
-
-    /** 工作流业务 */
-    taskWorkflowStore!: ITaskFlowChartStore;
-
-    /** 工作流Store管理 */
-    taskFlowChart!: TaskFlowChart;
-
-    /** 操作记录 */
-    @observable actionLogs: string[] = [];
-
-    constructor(_taskId?: string) {
-        this.taskFlowChart = new TaskFlowChart(this);
-        this.taskWorkflowStore = new TaskFlowChartStore(this.taskFlowChart);
-    }
-
+``` javascript
 
     //初始化业务模型
     @action
@@ -59,7 +20,7 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
         let a = this.taskWorkflowStore.getAll();
         console.log('得到全部数据', a);
     }
-
+    
     //初始化
     onClickInitFlowChart = async (isDefault: boolean): Promise<void> => {
 
@@ -187,4 +148,6 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
         this.actionLogs.unshift(str);
     }
 
-}
+
+```
+ 
