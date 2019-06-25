@@ -15,7 +15,7 @@ export interface FlowChartDiagramProps {
 
 let myDiagram: Diagram;
 // let linksToAdd: FCLinkModel[] = [];
-let divID = `divDiagram${new Date().getTime()}`;
+//let divID = ;
 
 @observer
 class FlowChartDiagram extends Component<FlowChartDiagramProps> {
@@ -57,7 +57,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
     render() {
         return (
             <GojsDiagram
-                diagramId={divID}
+                diagramId={`divDiagram${new Date().getTime()}`}
                 className="divDiagram"
                 model={this.props.store.model}
                 createDiagram={this.createDiagram}
@@ -1235,7 +1235,7 @@ class FlowChartDiagram extends Component<FlowChartDiagramProps> {
             // console.log('wfDroper Node');
         } else {
         }
-        debugger;
+        //debugger;
         this.props.store.onDragEndFCNodeHandler();
 
     }

@@ -153,6 +153,18 @@ export class CustomTaskStore implements ITaskFlowChartRuntime {
 
     }
 
+    //选中的节点
+    @action
+    onClickSelectNodeHandler = async (key: string): Promise<void> => {
+        if (!key) {
+            let node = this.taskWorkflowStore.getFirstNode();
+            if (node && node.key) key = node.key;
+        }
+        this.taskWorkflowStore.setSetlectedBykey(key);
+        this.logs(`选中key:${key}`);
+    }
+
+
     //删除流程图上的节点
     @action
     onClickDeleteNodeHandler = async (key: string): Promise<void> => {

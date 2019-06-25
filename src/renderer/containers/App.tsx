@@ -8,16 +8,16 @@ type AppProps = {
 
 }
 export default class App extends Component<AppProps> {
-    customTaskStore:CustomTaskStore
+    customTaskStore: CustomTaskStore
     constructor(props: AppProps) {
         super(props);
         this.customTaskStore = new CustomTaskStore();
     }
-    
-    render() {      
+
+    render() {
         return (
             <Provider>
-                <CustTask customTaskStore = {this.customTaskStore} ></CustTask>
+                <CustTask store={this.customTaskStore} ></CustTask>
             </Provider>
         );
     }

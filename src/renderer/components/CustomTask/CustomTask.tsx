@@ -10,7 +10,7 @@ import { ActionNodeType } from '../../stores/TaskFlowChartStore';
 
 
 type CustomTaskProps = {
-    customTaskStore: CustomTaskStore
+    store: CustomTaskStore
 }
 
 type CustomTaskState = {
@@ -73,14 +73,14 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                     <Row className="customtask-main">
                         <SplitPane split="horizontal" defaultSize="60%" onChange={size => this.onChangeHorizontal(size)} minSize={300} ref='mainSpliter'>
                             <SplitPane split="vertical" defaultSize="85%" minSize={500} className={'divSplitH'}>
-                                <Workflow store={this.props.customTaskStore.taskFlowChart}></Workflow>
+                                <Workflow store={this.props.store.taskFlowChart}></Workflow>
                                 <div>
                                     <Row type='flex' className='divResult'>
                                         <Col>
                                             {
-                                                this.props.customTaskStore.actionLogs.map((str, index) => {
+                                                this.props.store.actionLogs.map((str, index) => {
                                                     return (
-                                                        <Row key={index}>{this.props.customTaskStore.actionLogs.length - index}、{str}</Row>
+                                                        <Row key={index}>{this.props.store.actionLogs.length - index}、{str}</Row>
                                                     )
                                                 })
                                             }
@@ -91,57 +91,66 @@ class CustomTask extends Component<CustomTaskProps, CustomTaskState> {
                             <div className='divActions'>
                                 <Row type='flex' className='divActionItem' style={{ marginTop: '5px' }}>
                                     <Col><label>初始：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(true)}>初始化</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetAll()}>得到全部</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickInitFlowChart(true)}>初始化</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetAll()}>得到全部</Button></Col>
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>得到起始结点：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetFirstNode()}>第一个节点</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetFirstNode('cond2')}>分支2的第一个节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetFirstNode()}>第一个节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetFirstNode('cond2')}>分支2的第一个节点</Button></Col>
                                 </Row>
 
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>追加节点：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode()}>新增节点</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Loop)}>新增循环</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNode()}>新增节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNodeByType(ActionNodeType.Loop)}>新增循环</Button></Col>
 
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Navigate, this.props.customTaskStore.currKey)}>为循环追加打开网页</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeToNodeByType(ActionNodeType.Condition)}>当前值追加条件节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNodeByType(ActionNodeType.Navigate, this.props.store.currKey)}>为循环追加打开网页</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNodeToNodeByType(ActionNodeType.Condition)}>当前值追加条件节点</Button></Col>
 
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNodeByType(ActionNodeType.Condition, '')}>新增一个条件节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNodeByType(ActionNodeType.Condition, '')}>新增一个条件节点</Button></Col>
                                 </Row>
 
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>存取数据</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickSaveData('')}>第一个节点存储Data</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetData('')}>取出Data</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSaveData('')}>第一个节点存储Data</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetData('')}>取出Data</Button></Col>
                                 </Row>
 
                                 <Row type='flex' className='divActionItem' style={{ marginTop: '10px' }}>
                                     <Col><label>预设流程图：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickInitFlowChart(false)}>预设</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickInitFlowChart(false)}>预设</Button></Col>
                                     <Col></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetData('node1')}>取出node1的Data</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetData('loop')}>取出node1的Data</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetData('node1')}>取出node1的Data</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetData('loop')}>取出node1的Data</Button></Col>
 
 
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickSaveData('loop')}>改变 loop</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickGetData('loop')}>再取出node1的Data</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSaveData('loop')}>改变 loop</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickGetData('loop')}>再取出node1的Data</Button></Col>
                                 </Row>
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>追加节点：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendBranchNode("branch1-1")}>条件分支1增加条件分支(没实现)</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("branch1-1")}>追加到分支1</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("branch1-2")}>追加到分支2</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickAppendNode("loop")}>追加到循环</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendBranchNode("branch1-1")}>条件分支1增加条件分支(没实现)</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNode("branch1-1")}>追加到分支1</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNode("branch1-2")}>追加到分支2</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickAppendNode("loop")}>追加到循环</Button></Col>
                                 </Row>
 
                                 <Row type='flex' className='divActionItem'>
                                     <Col><label>删除节点：</label></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("node1")}>删除节点</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("loop")}>删除节点 循环</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("branch1-2")}>删除节点 条件分支2</Button></Col>
-                                    <Col><Button onClick={() => this.props.customTaskStore.onClickDeleteNodeHandler("cond")}>删除节点 条件</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickDeleteNodeHandler("node1")}>删除节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickDeleteNodeHandler("loop")}>删除节点 循环</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickDeleteNodeHandler("branch1-2")}>删除节点 条件分支2</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickDeleteNodeHandler("cond")}>删除节点 条件</Button></Col>
+                                </Row>
+
+
+                                <Row type='flex' className='divActionItem'>
+                                    <Col><label>选中节点：</label></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSelectNodeHandler("")}>选中第一个节点</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSelectNodeHandler("loop")}>选中 循环</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSelectNodeHandler("branch1-2")}>选中 条件分支2</Button></Col>
+                                    <Col><Button onClick={() => this.props.store.onClickSelectNodeHandler("cond")}>选中 条件</Button></Col>
                                 </Row>
 
                             </div>

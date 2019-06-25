@@ -112,6 +112,11 @@ export interface ITaskFlowChartStore {
     deleteNodeByKey(key: string): void;
 
     /**
+    * 设置选中
+    */
+    setSetlectedBykey(key: string): void;
+
+    /**
      * 重绘
      */
     render(): void;
@@ -402,7 +407,7 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
             if (!!n && !!n.key && n.childKeys && n.childKeys.length > 0) {
                 n.childs = this.getFCNodes(n.childKeys)
             }
-            a.push(n);
+            a.push({ ...n, ...{ data: this.storeData[x] } });
         });
 
         return a;
@@ -496,9 +501,19 @@ class TaskFlowChartStore implements ITaskFlowChartStore {
 
 
     /**
+    * 设置选中
+    */
+    setSetlectedBykey(key: string): void {
+        this.store.diagram.select(this.store.diagram.findNodeForKey(key));
+        //this.store.diagram.sect
+    }
+
+
+    /**
      * 
      */
     render(): void {
+
         this.store.diagram.layoutDiagram(true);
     }
 
