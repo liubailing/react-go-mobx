@@ -131,7 +131,7 @@ export class TaskFlowChart extends FlowChartStore { }
 class TaskFlowChartStore implements ITaskFlowChartStore {
     @observable private store: TaskFlowChart;
 
-    @observable private storeData = {};
+    @observable private storeData: any = {};
 
     private taskId: string = '';
     // @observable private tempData:any={};
